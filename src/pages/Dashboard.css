@@ -1,0 +1,15 @@
+.container-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    max-height: 600px;
+    /* altura máxima visible */
+    overflow-y: auto;
+    /* activa el scroll si se excede */
+    /* border: 2px solid red;  */
+}
