@@ -19,7 +19,7 @@ export function CustomNavbar() {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg"> 
+    <Navbar bg="dark" variant="dark" expand="lg">
       <Navbar.Brand style={{ marginLeft: "25px", cursor: "pointer" }} onClick={() => navigation("/")}>
         <FaHome /> Inicio
       </Navbar.Brand>
@@ -34,15 +34,13 @@ export function CustomNavbar() {
           <Nav.Link onClick={() => navigation("/")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaTachometerAlt style={{ marginRight: "5px" }} /> Panel Principal
           </Nav.Link>
-          <Nav.Link onClick={() => navigation("/obsevaciones")} style={{ borderBottom: "none", textDecoration: "none" }}>
+          <Nav.Link onClick={() => navigation("/config-device")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaClipboardList style={{ marginRight: "5px" }} /> Configuracion de dispositivo
           </Nav.Link>
           {/* <Nav.Link onClick={() => navigation("/records-panel")}>Panel Registros</Nav.Link> */}
-          {(role === "SA" || role === "ADMIN") && (
-            <Nav.Link onClick={() => navigation("/administracion")} style={{ borderBottom: "none", textDecoration: "none" }}>
-              <FaUserShield style={{ marginRight: "5px" }} /> Administración
-            </Nav.Link>
-          )}
+          <Nav.Link onClick={() => navigation("/config-device")} style={{ borderBottom: "none", textDecoration: "none" }}>
+            <FaUserShield style={{ marginRight: "5px" }} /> Administración
+          </Nav.Link>
         </Nav>
 
         {/* Right-aligned logout button */}
