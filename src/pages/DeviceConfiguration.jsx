@@ -1,86 +1,57 @@
 import React, { useState } from "react";
-import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Button } from "react-bootstrap";
+import { CustomNavbar } from "../components/CustomNavbar";
+import { DeviceInfoCard } from "../components/DeviceInfoCard";
+import { AllowedUsersCard } from "../components/AllowedUsersCard";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 export function DeviceConfiguration() {
-  const [deviceName, setDeviceName] = useState("");
-  const [ipAddress, setIpAddress] = useState("");
-  const [zone, setZone] = useState("");
-  const [tempThreshold, setTempThreshold] = useState("");
+  const [deviceInfo] = useState({
+    devName: "Entrada Principal",
+    serverHost: "192.168.1.100",
+    serverPort: "8080",
+    pushEnable: "yes",
+    language: "es",
+    volume: "7",
+    antiPass: "no",
+    sleepTime: "5",
+    verifyMode: "fingerprint",
+    adminPwd: {
+      oldPwd: "admin123",
+      newPwd: "nuevaClave456",
+    },
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const configData = {
-      name: deviceName,
-      ip: ipAddress,
-      zone,
-      temperatureLimit: tempThreshold,
-    };
-    console.log("Configuración enviada:", configData);
-    // Aquí puedes hacer una petición POST/PUT al backend
+  const [allowedUsers] = useState([
+    { id: 1, name: "Carlos R.", role: "Empleado", authMode: "Huella" },
+    { id: 2, name: "Lucía V.", role: "Supervisor", authMode: "Facial" },
+    { id: 3, name: "Marcos T.", role: "Seguridad", authMode: "Tarjeta" },
+  ]);
+
+  const navigate = useNavigate();
+  const handleEditUsers = () => {
+    navigate(`/usuarios-permitidos/1`);
   };
-
   return (
-    <Container className="mt-4">
-      <Row className="justify-content-center">
-        <Col md={8}>
-          <Card className="shadow-lg">
-            <Card.Header as="h4" className="bg-dark text-white">
-              Configuración del Dispositivo
-            </Card.Header>
-            <Card.Body>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="deviceName" className="mb-3">
-                  <Form.Label>Nombre del Dispositivo</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={deviceName}
-                    onChange={(e) => setDeviceName(e.target.value)}
-                    placeholder="Ej. Biométrico Zona 1"
-                    required
-                  />
-                </Form.Group>
+    <div className="g-background">
+      <CustomNavbar />
 
-                <Form.Group controlId="ipAddress" className="mb-3">
-                  <Form.Label>Dirección IP</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={ipAddress}
-                    onChange={(e) => setIpAddress(e.target.value)}
-                    placeholder="Ej. 192.168.0.10"
-                    required
-                  />
-                </Form.Group>
+      <Container className="mt-4">
+        <Row className="mb-3">
+          <Col>
+            <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
+              <FaArrowLeft className="me-2" />
+              Atrás
+            </Button>
+          </Col>
+        </Row>
+        {/* Tarjeta de configuración */}
+        <DeviceInfoCard deviceInfo={deviceInfo} onEdit={() => console.log("Editar configuración de biométrico")} />
 
-                <Form.Group controlId="zone" className="mb-3">
-                  <Form.Label>Zona Asignada</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={zone}
-                    onChange={(e) => setZone(e.target.value)}
-                    placeholder="Ej. Zona A, Zona de Frío, etc."
-                    required
-                  />
-                </Form.Group>
-
-                <Form.Group controlId="tempThreshold" className="mb-4">
-                  <Form.Label>Umbral de Temperatura (°C)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={tempThreshold}
-                    onChange={(e) => setTempThreshold(e.target.value)}
-                    placeholder="Ej. 5.0"
-                    required
-                  />
-                </Form.Group>
-
-                <Button variant="dark" type="submit" className="w-100">
-                  Guardar Configuración
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+        {/* Lista de usuarios permitidos */}
+        <AllowedUsersCard users={allowedUsers} onEdit={handleEditUsers} />
+      </Container>
+    </div>
   );
 }

@@ -34,11 +34,11 @@ export function CustomNavbar() {
           <Nav.Link onClick={() => navigation("/")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaTachometerAlt style={{ marginRight: "5px" }} /> Panel Principal
           </Nav.Link>
-          <Nav.Link onClick={() => navigation("/config-device")} style={{ borderBottom: "none", textDecoration: "none" }}>
-            <FaClipboardList style={{ marginRight: "5px" }} /> Configuracion de dispositivo
+          <Nav.Link onClick={() => navigation("/user-access")} style={{ borderBottom: "none", textDecoration: "none" }}>
+            <FaClipboardList style={{ marginRight: "5px" }} /> Acesos de usuarios
           </Nav.Link>
           {/* <Nav.Link onClick={() => navigation("/records-panel")}>Panel Registros</Nav.Link> */}
-          <Nav.Link onClick={() => navigation("/config-device")} style={{ borderBottom: "none", textDecoration: "none" }}>
+          <Nav.Link onClick={() => navigation("/administracion")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaUserShield style={{ marginRight: "5px" }} /> Administración
           </Nav.Link>
         </Nav>

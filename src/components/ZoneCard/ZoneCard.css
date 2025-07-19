@@ -1,5 +1,5 @@
 .zone-card {
-  background-color: #ffffff;
+  background-color: #212529;
   border: 1px solid #ddd;
   border-radius: 12px;
   padding: 16px;
@@ -19,13 +19,13 @@
 .zone-card h2 {
   font-size: 1.4rem;
   margin-bottom: 8px;
-  color: #333;
+  color: #ffff;
 }
 
 .zone-card p {
   font-size: 0.95rem;
   margin-bottom: 12px;
-  color: #555;
+  color: #ffff;
 }
 
 .zone-card ul {
@@ -41,7 +41,7 @@
   font-size: 0.9rem;
   padding: 6px 0;
   border-bottom: 1px solid #eee;
-  color: #444;
+  color: #ffff;
 }
 
 .zone-card li:last-child {
