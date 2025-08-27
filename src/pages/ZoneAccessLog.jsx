@@ -295,7 +295,7 @@ export function ZoneAccessLog() {
             Cancelar
           </Button>
           <Button
-            variant="light"
+            variant="outline-light"
             size="sm"
             onClick={() => {
               // Aquí podrías enviar la observación a tu backend en el futuro

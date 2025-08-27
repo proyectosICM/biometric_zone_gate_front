@@ -58,23 +58,23 @@ export function UserAccessDetails() {
         </Table>
         <div className="d-flex justify-content-end mt-3">
 
-            <Button variant="light" onClick={() => setShowDownloadModal(true)}>
-              Descargar registros en Excel
-            </Button>
+          <Button variant="light" onClick={() => setShowDownloadModal(true)}>
+            Descargar registros en Excel
+          </Button>
 
         </div>
       </Container>
 
       {/* Modal de descarga */}
       <Modal show={showDownloadModal} onHide={() => setShowDownloadModal(false)} centered>
-        <Modal.Header closeButton>
+        <Modal.Header closeButton className="bg-dark text-light border-secondary">
           <Modal.Title>Seleccionar rango de descarga</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="bg-dark text-light">
           <Row className="text-center">
             {["Semanal", "Mensual", "Anual", "Todos"].map((label) => (
               <Col xs={6} className="mb-3" key={label}>
-                <Button variant="outline-dark" className="w-100 p-4" style={{ borderRadius: "0.5rem" }} onClick={() => handleDownloadClick(label)}>
+                <Button variant="outline-light" className="w-100 p-4" style={{ borderRadius: "0.5rem" }} onClick={() => handleDownloadClick(label)}>
                   {label}
                 </Button>
               </Col>
