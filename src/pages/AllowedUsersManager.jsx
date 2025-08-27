@@ -36,8 +36,8 @@ export function AllowedUsersManager() {
       color: "#fff",
       iconColor: "#ffc107", // amarillo como advertencia
       showCancelButton: true,
-      confirmButtonColor: "#6c757d", // rojo Bootstrap
-      cancelButtonColor: "#6c757d", // gris Bootstrap
+      confirmButtonColor: "#6c757d",
+      cancelButtonColor: "#6c757d",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     }).then((result) => {
@@ -62,6 +62,16 @@ export function AllowedUsersManager() {
     console.log("Asignar usuario:", selectedUserId, "con", selectedAuthMode, "en zona", id);
     // Llamar a API para asignar usuario
     setShowModal(false);
+
+    Swal.fire({
+      title: "Usuario asignado",
+      text: "El usuario fue agregado correctamente a la zona.",
+      icon: "success",
+      background: "#212529",
+      color: "#fff",
+      confirmButtonColor: "#198754", // verde Bootstrap
+    });
+
     setSelectedUserId("");
     setSelectedAuthMode("Huella");
   };

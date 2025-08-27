@@ -4,6 +4,7 @@ import { CustomNavbar } from "../components/CustomNavbar";
 import { Container, Table, Button, Stack, Row, Col } from "react-bootstrap";
 import { FaFingerprint, FaArrowLeft } from "react-icons/fa";
 import { Modal, Form } from "react-bootstrap";
+import Swal from "sweetalert2";
 
 export function ZoneAccessLog() {
   const { zoneId } = useParams();
@@ -60,10 +61,122 @@ export function ZoneAccessLog() {
       authorized: false,
       observation: "Observación manual: puerta forzada.",
     },
+    {
+      id: 5,
+      name: "Javier L.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-15 08:20",
+      authMode: "Tarjeta",
+      authorized: true,
+      observation: "Ingreso normal.",
+    },
+    {
+      id: 6,
+      name: "Ana P.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-14 12:35",
+      authMode: "Huella",
+      authorized: true,
+      observation: "Acceso al área administrativa.",
+    },
+    {
+      id: 7,
+      name: "Roberto M.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-14 23:50",
+      authMode: "Reconocimiento facial",
+      authorized: false,
+      observation: "Intento fuera del horario laboral.",
+    },
+    {
+      id: 8,
+      name: "Elena F.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-13 09:15",
+      authMode: "Tarjeta",
+      authorized: true,
+      observation: "Sin novedades.",
+    },
+    {
+      id: 9,
+      name: "Tomás H.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-13 17:40",
+      authMode: "Huella",
+      authorized: true,
+      observation: "Acceso correcto.",
+    },
+    {
+      id: 10,
+      name: "Valeria S.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-12 20:05",
+      authMode: "Reconocimiento facial",
+      authorized: false,
+      observation: "Intento de acceso no reconocido.",
+    },
+    {
+      id: 11,
+      name: "Andrés K.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-12 07:25",
+      authMode: "Tarjeta",
+      authorized: true,
+      observation: "Acceso autorizado al área de servidores.",
+    },
+    {
+      id: 12,
+      name: "Beatriz O.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-11 19:55",
+      authMode: "Huella",
+      authorized: true,
+      observation: "Ingreso correcto.",
+    },
+    {
+      id: 13,
+      name: "Fernando D.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-11 21:10",
+      authMode: "Reconocimiento facial",
+      authorized: false,
+      observation: "Acceso denegado, usuario sin permisos.",
+    },
+    {
+      id: 14,
+      name: "Gabriela C.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-10 13:05",
+      authMode: "Tarjeta",
+      authorized: true,
+      observation: "Ingreso autorizado.",
+    },
+    {
+      id: 15,
+      name: "Héctor B.",
+      zone: `Zona ${zoneId}`,
+      datetime: "2025-07-09 05:55",
+      authMode: "Huella",
+      authorized: false,
+      observation: "Intento de acceso fuera de turno.",
+    },
   ];
 
   const [page, setPage] = useState(0);
-  const totalPages = 5;
+
+  // Número de registros por página
+  const itemsPerPage = 5;
+
+  // Calcular índices de inicio y fin
+  const startIndex = page * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  // Sacar solo los registros de la página actual
+  const paginatedLogs = accessLogs.slice(startIndex, endIndex);
+
+  // Total de páginas dinámico
+  const totalPages = Math.ceil(accessLogs.length / itemsPerPage);
+
   const isLast = page >= totalPages - 1;
 
   const handlePrevious = () => {
@@ -121,7 +234,7 @@ export function ZoneAccessLog() {
               </tr>
             </thead>
             <tbody>
-              {accessLogs.map((log) => (
+              {paginatedLogs.map((log) => (
                 <tr key={log.id}>
                   <td>{log.name}</td>
                   <td>{log.zone}</td>
@@ -185,8 +298,21 @@ export function ZoneAccessLog() {
             variant="light"
             size="sm"
             onClick={() => {
+              // Aquí podrías enviar la observación a tu backend en el futuro
               console.log("Guardar para ID:", selectedLogId, "Observación:", newObservation);
+
               handleCloseModal();
+
+              // SweetAlert2 confirmación
+              Swal.fire({
+                icon: "success",
+                title: "Observación guardada",
+                text: `Se registró correctamente la observación para el ID ${selectedLogId}.`,
+                background: "#212529",
+                color: "#fff",
+                confirmButtonColor: "#198754",
+                confirmButtonText: "Aceptar",
+              });
             }}
           >
             Guardar observación

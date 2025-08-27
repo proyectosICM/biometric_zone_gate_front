@@ -7,7 +7,7 @@ export function Administration() {
   const navigate = useNavigate();
 
   const cards = [
-    {
+    { 
       title: "Usuarios",
       icon: <FaUsers size={40} />,
       description: "Gestiona los usuarios del sistema",

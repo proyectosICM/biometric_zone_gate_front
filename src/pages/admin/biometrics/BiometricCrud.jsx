@@ -1,31 +1,43 @@
+// BiometricCrud.jsx
 import { useState } from "react";
 import { Button, Col, Container, Row } from "react-bootstrap";
 import Swal from "sweetalert2";
-import { UserTable } from "./UserTable";
-import { UserModal } from "./UserModal";
+import { BiometricTable } from "./BiometricTable";
+import { BiometricModal } from "./BiometricModal";
 import { CustomNavbar } from "../../../components/CustomNavbar";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-export function UserCrud() {
+export function BiometricCrud() {
     const navigate = useNavigate();
 
-    const usersMock = [
-        { id: 1, name: "Carlos R.", email: "carlos@email.com", role: "Admin", authMethod: "Huella" },
-        { id: 2, name: "Lucía V.", email: "lucia@email.com", role: "Usuario", authMethod: "PIN" },
-        { id: 3, name: "Jorge M.", email: "jorge@email.com", role: "Supervisor", authMethod: "Tarjeta" },
+    const biometricsMock = [
+        {
+            id: 1,
+            deviceName: "Entrada Principal",
+            host: "192.168.1.100",
+            port: "8080",
+            push: "Yes",
+            language: "ES",
+            volume: "7",
+            antipassback: "No",
+            sleep: "5 min",
+            verificationMode: "Fingerprint",
+            oldPassword: "admin123",
+            newPassword: "nuevaClave456",
+        },
     ];
 
-    const [users, setUsers] = useState(usersMock);
+    const [biometrics, setBiometrics] = useState(biometricsMock);
     const [showModal, setShowModal] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
+    const [editingBiometric, setEditingBiometric] = useState(null);
 
-    // Guardar usuario (nuevo o editado)
-    const handleSave = (userData) => {
-        if (!userData.name || !userData.email) {
+    // Guardar biométrico
+    const handleSave = (bioData) => {
+        if (!bioData.deviceName || !bioData.host) {
             Swal.fire({
                 title: "Error",
-                text: "Todos los campos son obligatorios",
+                text: "Nombre del dispositivo y host son obligatorios",
                 icon: "error",
                 background: "#212529",
                 color: "#fff",
@@ -34,24 +46,24 @@ export function UserCrud() {
             return;
         }
 
-        if (userData.id) {
+        if (bioData.id) {
             // Editar
-            setUsers(users.map((u) => (u.id === userData.id ? userData : u)));
+            setBiometrics(biometrics.map((b) => (b.id === bioData.id ? bioData : b)));
             Swal.fire({
                 title: "Actualizado",
-                text: "Usuario editado correctamente",
+                text: "Biométrico editado correctamente",
                 icon: "success",
                 background: "#212529",
                 color: "#fff",
                 confirmButtonColor: "#198754",
             });
         } else {
-            // Agregar nuevo
-            const newUser = { ...userData, id: Date.now() };
-            setUsers([...users, newUser]);
+            // Nuevo
+            const newBio = { ...bioData, id: Date.now() };
+            setBiometrics([...biometrics, newBio]);
             Swal.fire({
                 title: "Agregado",
-                text: "Usuario creado correctamente",
+                text: "Biométrico creado correctamente",
                 icon: "success",
                 background: "#212529",
                 color: "#fff",
@@ -60,10 +72,10 @@ export function UserCrud() {
         }
 
         setShowModal(false);
-        setEditingUser(null);
+        setEditingBiometric(null);
     };
 
-    // Eliminar usuario
+    // Eliminar biométrico
     const handleDelete = (id) => {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -77,10 +89,10 @@ export function UserCrud() {
             confirmButtonText: "Sí, eliminar",
         }).then((result) => {
             if (result.isConfirmed) {
-                setUsers(users.filter((u) => u.id !== id));
+                setBiometrics(biometrics.filter((b) => b.id !== id));
                 Swal.fire({
                     title: "Eliminado",
-                    text: "El usuario ha sido eliminado",
+                    text: "El biométrico ha sido eliminado",
                     icon: "success",
                     background: "#212529",
                     color: "#fff",
@@ -103,35 +115,46 @@ export function UserCrud() {
                         </Button>
                     </Col>
                 </Row>
-
-                <h2 className="text-white text-center mb-4">Gestión de Usuarios</h2>
+                <h2 className="text-white text-center mb-4">Gestión de Biométricos</h2>
 
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h3 className="text-light">Usuarios Registrados</h3>
+                    <h3 className="text-light">Dispositivos Registrados</h3>
                     <Button
                         variant="outline-success"
                         onClick={() => {
-                            setEditingUser({ name: "", email: "", role: "Usuario", authMethod: "Huella" });
+                            setEditingBiometric({
+                                deviceName: "",
+                                host: "",
+                                port: "",
+                                push: "Yes",
+                                language: "ES",
+                                volume: "5",
+                                antipassback: "No",
+                                sleep: "5 min",
+                                verificationMode: "Fingerprint",
+                                oldPassword: "",
+                                newPassword: "",
+                            });
                             setShowModal(true);
                         }}
                     >
-                        + Nuevo Usuario
+                        + Nuevo Dispositivo
                     </Button>
                 </div>
 
-                <UserTable
-                    users={users}
-                    onEdit={(user) => {
-                        setEditingUser(user);
+                <BiometricTable
+                    biometrics={biometrics}
+                    onEdit={(b) => {
+                        setEditingBiometric(b);
                         setShowModal(true);
                     }}
                     onDelete={handleDelete}
                 />
 
-                <UserModal
+                <BiometricModal
                     show={showModal}
                     onHide={() => setShowModal(false)}
-                    user={editingUser}
+                    biometric={editingBiometric}
                     onSave={handleSave}
                 />
             </Container>

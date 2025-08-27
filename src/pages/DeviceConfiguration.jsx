@@ -43,7 +43,7 @@ export function DeviceConfiguration() {
             <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
               <FaArrowLeft className="me-2" />
               Atrás
-            </Button>
+            </Button> 
           </Col>
         </Row>
         {/* Tarjeta de configuración */}

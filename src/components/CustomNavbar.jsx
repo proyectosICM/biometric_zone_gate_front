@@ -34,6 +34,9 @@ export function CustomNavbar() {
           <Nav.Link onClick={() => navigation("/")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaTachometerAlt style={{ marginRight: "5px" }} /> Panel Principal
           </Nav.Link>
+          <Nav.Link onClick={() => navigation("/observations")} style={{ borderBottom: "none", textDecoration: "none" }}>
+            <FaClipboardList style={{ marginRight: "5px" }} /> Observacioness
+          </Nav.Link>
           <Nav.Link onClick={() => navigation("/user-access")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaClipboardList style={{ marginRight: "5px" }} /> Acesos de usuarios
           </Nav.Link>

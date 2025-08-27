@@ -4,7 +4,7 @@ import { CustomNavbar } from "../components/CustomNavbar";
 import { ZoneCard } from "../components/ZoneCard/ZoneCard";
 import "./Dashboard.css";
 import { Container } from "react-bootstrap";
-
+ 
 export function Dashboard() {
   const zones = [
     {

@@ -1,5 +1,6 @@
 import { Card, Row, Col, Button, Modal, Form } from "react-bootstrap";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 export function DeviceInfoCard({ deviceInfo, onEdit }) {
   const [showModal, setShowModal] = useState(false);
@@ -26,36 +27,70 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
     console.log("Guardando cambios:", editedDevice);
     onEdit?.(editedDevice);
     setShowModal(false);
+
+    Swal.fire({
+      title: "Configuración guardada",
+      text: "Los cambios del dispositivo se aplicaron correctamente.",
+      icon: "success",
+      background: "#212529",
+      color: "#fff",
+      confirmButtonColor: "#198754",
+    });
   };
 
   return (
     <>
       <Card bg="dark" text="light" className="shadow-lg mb-4">
-        <Card.Header className="text-center fs-4">Configuración del Dispositivo</Card.Header>
+        <Card.Header className="text-center fs-4">
+          Configuración del Dispositivo
+        </Card.Header>
         <Card.Body>
           <Row className="mb-3">
-            <Col md={6}><strong>Nombre del dispositivo:</strong> {deviceInfo.devName}</Col>
-            <Col md={6}><strong>Host del servidor:</strong> {deviceInfo.serverHost}</Col>
+            <Col md={6}>
+              <strong>Nombre del dispositivo:</strong> {deviceInfo.devName}
+            </Col>
+            <Col md={6}>
+              <strong>Host del servidor:</strong> {deviceInfo.serverHost}
+            </Col>
           </Row>
           <Row className="mb-3">
-            <Col md={6}><strong>Puerto del servidor:</strong> {deviceInfo.serverPort}</Col>
-            <Col md={6}><strong>Push habilitado:</strong> {deviceInfo.pushEnable}</Col>
+            <Col md={6}>
+              <strong>Puerto del servidor:</strong> {deviceInfo.serverPort}
+            </Col>
+            <Col md={6}>
+              <strong>Push habilitado:</strong> {deviceInfo.pushEnable}
+            </Col>
           </Row>
           <Row className="mb-3">
-            <Col md={6}><strong>Idioma:</strong> {deviceInfo.language}</Col>
-            <Col md={6}><strong>Volumen:</strong> {deviceInfo.volume}</Col>
+            <Col md={6}>
+              <strong>Idioma:</strong> {deviceInfo.language}
+            </Col>
+            <Col md={6}>
+              <strong>Volumen:</strong> {deviceInfo.volume}
+            </Col>
           </Row>
           <Row className="mb-3">
-            <Col md={6}><strong>Anti-passback:</strong> {deviceInfo.antiPass}</Col>
-            <Col md={6}><strong>Tiempo de sueño:</strong> {deviceInfo.sleepTime} min</Col>
+            <Col md={6}>
+              <strong>Anti-passback:</strong> {deviceInfo.antiPass}
+            </Col>
+            <Col md={6}>
+              <strong>Tiempo de sueño:</strong> {deviceInfo.sleepTime} min
+            </Col>
           </Row>
           <Row className="mb-3">
-            <Col md={6}><strong>Modo de verificación:</strong> {deviceInfo.verifyMode}</Col>
+            <Col md={6}>
+              <strong>Modo de verificación:</strong> {deviceInfo.verifyMode}
+            </Col>
           </Row>
           <hr className="border-light" />
           <Row className="mb-3">
-            <Col md={6}><strong>Contraseña antigua de admin:</strong> {deviceInfo.adminPwd.oldPwd}</Col>
-            <Col md={6}><strong>Nueva contraseña:</strong> {deviceInfo.adminPwd.newPwd}</Col>
+            <Col md={6}>
+              <strong>Contraseña antigua de admin:</strong>{" "}
+              {deviceInfo.adminPwd.oldPwd}
+            </Col>
+            <Col md={6}>
+              <strong>Nueva contraseña:</strong> {deviceInfo.adminPwd.newPwd}
+            </Col>
           </Row>
 
           <div className="text-end mt-4">
@@ -67,7 +102,10 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
       </Card>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+        <Modal.Header
+          closeButton
+          className="bg-dark text-light border-secondary"
+        >
           <Modal.Title>Editar Configuración del Dispositivo</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
@@ -177,7 +215,9 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
                 type="password"
                 className="bg-secondary text-light border-0"
                 value={editedDevice.adminPwd.oldPwd}
-                onChange={(e) => handleAdminPwdChange("oldPwd", e.target.value)}
+                onChange={(e) =>
+                  handleAdminPwdChange("oldPwd", e.target.value)
+                }
               />
             </Form.Group>
 
@@ -187,7 +227,9 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
                 type="password"
                 className="bg-secondary text-light border-0"
                 value={editedDevice.adminPwd.newPwd}
-                onChange={(e) => handleAdminPwdChange("newPwd", e.target.value)}
+                onChange={(e) =>
+                  handleAdminPwdChange("newPwd", e.target.value)
+                }
               />
             </Form.Group>
           </Form>
@@ -196,7 +238,7 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={handleSave}>
+          <Button variant="light" onClick={handleSave}>
             Guardar cambios
           </Button>
         </Modal.Footer>

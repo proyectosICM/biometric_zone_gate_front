@@ -1,28 +1,28 @@
 import { useState } from "react";
 import { Button, Col, Container, Row } from "react-bootstrap";
 import Swal from "sweetalert2";
-import { UserTable } from "./UserTable";
-import { UserModal } from "./UserModal";
+import { CompanyTable } from "./CompanyTable";
+import { CompanyModal } from "./CompanyModal";
 import { CustomNavbar } from "../../../components/CustomNavbar";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-export function UserCrud() {
+export function CompanyCrud() {
     const navigate = useNavigate();
 
-    const usersMock = [
-        { id: 1, name: "Carlos R.", email: "carlos@email.com", role: "Admin", authMethod: "Huella" },
-        { id: 2, name: "Lucía V.", email: "lucia@email.com", role: "Usuario", authMethod: "PIN" },
-        { id: 3, name: "Jorge M.", email: "jorge@email.com", role: "Supervisor", authMethod: "Tarjeta" },
+    const companiesMock = [
+        { id: 1, name: "TechCorp", industry: "Tecnología", contact: "soporte@techcorp.com" },
+        { id: 2, name: "GreenFoods", industry: "Alimentos", contact: "ventas@greenfoods.com" },
+        { id: 3, name: "BuildCo", industry: "Construcción", contact: "contacto@buildco.com" },
     ];
 
-    const [users, setUsers] = useState(usersMock);
+    const [companies, setCompanies] = useState(companiesMock);
     const [showModal, setShowModal] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
+    const [editingCompany, setEditingCompany] = useState(null);
 
-    // Guardar usuario (nuevo o editado)
-    const handleSave = (userData) => {
-        if (!userData.name || !userData.email) {
+    // Guardar empresa
+    const handleSave = (companyData) => {
+        if (!companyData.name || !companyData.contact) {
             Swal.fire({
                 title: "Error",
                 text: "Todos los campos son obligatorios",
@@ -34,24 +34,24 @@ export function UserCrud() {
             return;
         }
 
-        if (userData.id) {
+        if (companyData.id) {
             // Editar
-            setUsers(users.map((u) => (u.id === userData.id ? userData : u)));
+            setCompanies(companies.map((c) => (c.id === companyData.id ? companyData : c)));
             Swal.fire({
                 title: "Actualizado",
-                text: "Usuario editado correctamente",
+                text: "Empresa editada correctamente",
                 icon: "success",
                 background: "#212529",
                 color: "#fff",
-                confirmButtonColor: "#198754",
+                confirmButtonColor: "#198754", // verde bootstrap
             });
         } else {
             // Agregar nuevo
-            const newUser = { ...userData, id: Date.now() };
-            setUsers([...users, newUser]);
+            const newCompany = { ...companyData, id: Date.now() };
+            setCompanies([...companies, newCompany]);
             Swal.fire({
                 title: "Agregado",
-                text: "Usuario creado correctamente",
+                text: "Empresa creada correctamente",
                 icon: "success",
                 background: "#212529",
                 color: "#fff",
@@ -60,10 +60,10 @@ export function UserCrud() {
         }
 
         setShowModal(false);
-        setEditingUser(null);
+        setEditingCompany(null);
     };
 
-    // Eliminar usuario
+    // Eliminar empresa
     const handleDelete = (id) => {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -77,15 +77,8 @@ export function UserCrud() {
             confirmButtonText: "Sí, eliminar",
         }).then((result) => {
             if (result.isConfirmed) {
-                setUsers(users.filter((u) => u.id !== id));
-                Swal.fire({
-                    title: "Eliminado",
-                    text: "El usuario ha sido eliminado",
-                    icon: "success",
-                    background: "#212529",
-                    color: "#fff",
-                    confirmButtonColor: "#198754",
-                });
+                setCompanies(companies.filter((c) => c.id !== id));
+                Swal.fire("Eliminado", "La empresa ha sido eliminada", "success");
             }
         });
     };
@@ -103,35 +96,34 @@ export function UserCrud() {
                         </Button>
                     </Col>
                 </Row>
-
-                <h2 className="text-white text-center mb-4">Gestión de Usuarios</h2>
+                <h2 className="text-white text-center mb-4">Gestión de Empresas</h2>
 
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h3 className="text-light">Usuarios Registrados</h3>
+                    <h3 className="text-light">Empresas Registradas</h3>
                     <Button
                         variant="outline-success"
                         onClick={() => {
-                            setEditingUser({ name: "", email: "", role: "Usuario", authMethod: "Huella" });
+                            setEditingCompany({ name: "", industry: "", contact: "" });
                             setShowModal(true);
                         }}
                     >
-                        + Nuevo Usuario
+                        + Nueva Empresa
                     </Button>
                 </div>
 
-                <UserTable
-                    users={users}
-                    onEdit={(user) => {
-                        setEditingUser(user);
+                <CompanyTable
+                    companies={companies}
+                    onEdit={(company) => {
+                        setEditingCompany(company);
                         setShowModal(true);
                     }}
                     onDelete={handleDelete}
                 />
 
-                <UserModal
+                <CompanyModal
                     show={showModal}
                     onHide={() => setShowModal(false)}
-                    user={editingUser}
+                    company={editingCompany}
                     onSave={handleSave}
                 />
             </Container>
