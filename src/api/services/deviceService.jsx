@@ -19,7 +19,6 @@ export const getAllDevicesPaginated = async (page = 0, size = 10, sortBy, direct
     const params = { page, size };
     if (sortBy) params.sortBy = sortBy;
     if (direction) params.direction = direction;
-
     const response = await api.get(`${endpoint}/page`, { params });
     return response.data;
   } catch (error) {
