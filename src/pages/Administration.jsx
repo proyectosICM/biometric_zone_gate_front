@@ -1,13 +1,13 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { CustomNavbar } from "../components/CustomNavbar";
-import { FaUsers, FaBuilding, FaFingerprint } from "react-icons/fa";
+import { FaUsers, FaBuilding, FaFingerprint, FaListAlt } from "react-icons/fa";
 
 export function Administration() {
   const navigate = useNavigate();
 
   const cards = [
-    { 
+    {
       title: "Usuarios",
       icon: <FaUsers size={40} />,
       description: "Gestiona los usuarios del sistema",
@@ -24,6 +24,12 @@ export function Administration() {
       icon: <FaFingerprint size={40} />,
       description: "Configura los dispositivos biométricos",
       route: "/biometrics",
+    },
+    {
+      title: "Tipos de Evento",
+      icon: <FaListAlt size={40} />,
+      description: "Gestiona los tipos de eventos de acceso",
+      route: "/event-types",
     },
   ];
 

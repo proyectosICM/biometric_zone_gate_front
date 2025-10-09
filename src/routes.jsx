@@ -1,6 +1,7 @@
 import { AccessLogDetail } from "./pages/AccessLogDetail";
 import { BiometricCrud } from "./pages/admin/biometrics/BiometricCrud";
 import { CompanyCrud } from "./pages/admin/companies/CompanyCrud";
+import { EventTypeCrud } from "./pages/admin/eventType/EventTypeCrud";
 import { UserCrud } from "./pages/admin/users/UserCrud";
 import { Administration } from "./pages/Administration";
 import { AllowedUsersManager } from "./pages/AllowedUsersManager";
@@ -28,8 +29,9 @@ export const routes = [
   { path: "/users", component: <UserCrud /> },
   { path: "/companies", component: <CompanyCrud /> },
   { path: "/biometrics", component: <BiometricCrud /> },
+  { path: "/event-types", component: <EventTypeCrud /> },
 
-    { path: "/login", component: <Login /> },
+  { path: "/login", component: <Login /> },
   {
     /* path: "/usuarios-permitidos/:id", component: <AllowedUsersManager /> */
   },
