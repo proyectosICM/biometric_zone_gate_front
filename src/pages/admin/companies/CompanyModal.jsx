@@ -2,26 +2,40 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
 
 export function CompanyModal({ show, onHide, company, onSave }) {
-    const [formData, setFormData] = useState({ id: null, name: "", industry: "", contact: "" });
+    const [formData, setFormData] = useState({ id: null, name: "", contact: "" });
 
     useEffect(() => {
         if (company) {
-            setFormData(company);
+            setFormData({
+                id: company.id || null,
+                name: company.name || "",
+            });
+        } else {
+            setFormData({ id: null, name: "" });
         }
-    }, [company]);
+    }, [company, show]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.name.trim()) return;
+        onSave(formData);
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={onHide} centered backdrop="static" animation={false}>
             <Modal.Header closeButton className="bg-dark text-light border-secondary">
-                <Modal.Title>{formData.id ? "Editar Empresa" : "Nueva Empresa"}</Modal.Title>
+                <Modal.Title>
+                    {formData.id ? "Editar Empresa" : "Nueva Empresa"}
+                </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="bg-dark text-light">
-                <Form>
+
+            <Form onSubmit={handleSubmit}>
+                <Modal.Body className="bg-dark text-light">
                     <Form.Group className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
@@ -30,40 +44,20 @@ export function CompanyModal({ show, onHide, company, onSave }) {
                             className="bg-secondary text-light border-0"
                             value={formData.name}
                             onChange={handleChange}
+                            required
                         />
                     </Form.Group>
+                </Modal.Body>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Rubro</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="industry"
-                            className="bg-secondary text-light border-0"
-                            value={formData.industry}
-                            onChange={handleChange}
-                        />
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label>Contacto</Form.Label>
-                        <Form.Control
-                            type="email"
-                            name="contact"
-                            className="bg-secondary text-light border-0"
-                            value={formData.contact}
-                            onChange={handleChange}
-                        />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Footer className="bg-dark border-secondary">
-                <Button variant="secondary" onClick={onHide}>
-                    Cancelar
-                </Button>
-                <Button variant="light" onClick={() => onSave(formData)}>
-                    Guardar
-                </Button>
-            </Modal.Footer>
+                <Modal.Footer className="bg-dark border-secondary">
+                    <Button variant="secondary" onClick={onHide}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" variant="light">
+                        Guardar
+                    </Button>
+                </Modal.Footer>
+            </Form>
         </Modal>
     );
 }

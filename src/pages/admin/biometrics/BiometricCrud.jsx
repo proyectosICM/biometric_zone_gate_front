@@ -15,7 +15,7 @@ export function BiometricCrud() {
         {
             id: 1,
             deviceName: "Entrada Principal",
-            host: "192.168.1.100",
+            host: "192.168.1.100", 
             port: "8080",
             push: "Yes",
             language: "ES",

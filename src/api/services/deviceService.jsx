@@ -2,29 +2,58 @@ import api from "../axiosConfig";
 
 const endpoint = "/devices";
 
+// Obtener todos los dispositivos (sin paginar)
+export const getAllDevices = async () => {
+  try {
+    const response = await api.get(endpoint);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching devices:", error);
+    throw error;
+  }
+};
+
+// Obtener dispositivos paginados
+export const getAllDevicesPaginated = async (page = 0, size = 10, sortBy, direction = "asc") => {
+  try {
+    const params = { page, size };
+    if (sortBy) params.sortBy = sortBy;
+    if (direction) params.direction = direction;
+
+    const response = await api.get(`${endpoint}/page`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching paginated devices:", error);
+    throw error;
+  }
+};
+
+// Obtener dispositivo por ID
 export const getDeviceById = async (id) => {
   try {
     const response = await api.get(`${endpoint}/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching device by ID:", error);
+    console.error(`Error fetching device with id ${id}:`, error);
     throw error;
   }
 };
 
-export const sendDeviceSettings = async (id, settingDTO) => {
+// Obtener dispositivo por nombre
+export const getDeviceByName = async (name) => {
   try {
-    const response = await api.post(`${endpoint}/${id}/settings/send`, settingDTO);
+    const response = await api.get(`${endpoint}/name/${name}`);
     return response.data;
   } catch (error) {
-    console.error("Error sending device settings:", error);
+    console.error(`Error fetching device with name ${name}:`, error);
     throw error;
   }
 };
 
-export const createDevice = async (deviceData) => {
+// Crear dispositivo
+export const createDevice = async (device) => {
   try {
-    const response = await api.post(`${endpoint}`, deviceData);
+    const response = await api.post(endpoint, device);
     return response.data;
   } catch (error) {
     console.error("Error creating device:", error);
@@ -32,22 +61,93 @@ export const createDevice = async (deviceData) => {
   }
 };
 
-export const updateDevice = async (id, deviceData) => {
+// Actualizar dispositivo
+export const updateDevice = async (id, device) => {
   try {
-    const response = await api.put(`${endpoint}/${id}`, deviceData);
+    const response = await api.put(`${endpoint}/${id}`, device);
     return response.data;
   } catch (error) {
-    console.error("Error updating device:", error);
+    console.error(`Error updating device with id ${id}:`, error);
     throw error;
   }
 };
 
+// Eliminar dispositivo
 export const deleteDevice = async (id) => {
   try {
-    const response = await api.delete(`${endpoint}/${id}`);
+    await api.delete(`${endpoint}/${id}`);
+  } catch (error) {
+    console.error(`Error deleting device with id ${id}:`, error);
+    throw error;
+  }
+};
+
+// Sincronizar usuarios desde dispositivo
+export const syncUsers = async (id) => {
+  try {
+    const response = await api.get(`${endpoint}/${id}/sync-users`);
     return response.data;
   } catch (error) {
-    console.error("Error deleting device:", error);
+    console.error(`Error syncing users for device ${id}:`, error);
+    throw error;
+  }
+};
+
+// Enviar usuario a dispositivo
+export const pushUser = async (id, user) => {
+  try {
+    const response = await api.post(`${endpoint}/${id}/push-user`, user);
+    return response.data;
+  } catch (error) {
+    console.error(`Error pushing user to device ${id}:`, error);
+    throw error;
+  }
+};
+
+// Eliminar un usuario de un dispositivo
+export const deleteUser = async (id, userId) => {
+  try {
+    const response = await api.delete(`${endpoint}/${id}/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting user ${userId} from device ${id}:`, error);
+    throw error;
+  }
+};
+
+// Limpiar todos los usuarios de un dispositivo
+export const clearAllUsers = async (id) => {
+  try {
+    const response = await api.delete(`${endpoint}/${id}/users`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error clearing users from device ${id}:`, error);
+    throw error;
+  }
+};
+
+// Listar dispositivos de una empresa
+export const listByCompany = async (companyId) => {
+  try {
+    const response = await api.get(`${endpoint}/company/${companyId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching devices for company ${companyId}:`, error);
+    throw error;
+  }
+};
+
+// Listar dispositivos de una empresa paginados
+export const listByCompanyPaginated = async (companyId, page = 0, size = 10, sortBy, direction = "asc") => {
+  try {
+    const params = { page, size };
+    if (sortBy) params.sortBy = sortBy;
+    if (direction) params.direction = direction;
+
+    const response = await api.get(`${endpoint}/company/${companyId}/page`, { params });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching paginated devices for company ${companyId}:`, error);
     throw error;
   }
 };

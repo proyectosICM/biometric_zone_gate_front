@@ -1,107 +1,68 @@
 import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { FaFingerprint, FaCamera, FaIdCard } from "react-icons/fa";
-import { MdPin } from "react-icons/md";
 
 export function UserModal({ show, onHide, user, onSave }) {
     const [formData, setFormData] = useState({
         id: null,
+        enrollId: "",
         name: "",
         email: "",
-        role: "Usuario",
-        authMethod: "Huella",
-        authData: ""
+        username: "",
+        password: "",
+        adminLevel: 0,
+        enabled: true,
     });
 
     useEffect(() => {
         if (user) {
-            setFormData(user);
+            setFormData({
+                id: user.id || null,
+                enrollId: user.enrollId || "",
+                name: user.name || "",
+                email: user.email || "",
+                username: user.username || "",
+                password: "",
+                adminLevel: user.adminLevel ?? 0,
+                enabled: user.enabled ?? true,
+            });
+        } else {
+            setFormData({
+                id: null,
+                enrollId: "",
+                name: "",
+                email: "",
+                username: "",
+                password: "",
+                adminLevel: 0,
+                enabled: true,
+            });
         }
-    }, [user]);
+    }, [user, show]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value,
+        }));
     };
 
-    const simulateRFID = () => {
-        // Generar un ID aleatorio para simular la tarjeta
-        const randomId = `RFID-${Math.floor(1000 + Math.random() * 9000)}-${Math.random()
-            .toString(36)
-            .substring(2, 6)
-            .toUpperCase()}`;
-        setFormData({ ...formData, authData: `Tarjeta registrada: ${randomId}` });
-    };
-
-    const renderAuthField = () => {
-        switch (formData.authMethod) {
-            case "Huella":
-                return (
-                    <div className="text-center mt-3">
-                        <Button
-                            variant="outline-light"
-                            onClick={() =>
-                                setFormData({ ...formData, authData: "Huella registrada ✅" })
-                            }
-                        >
-                            <FaFingerprint className="me-2" />
-                            Simular lectura de huella
-                        </Button>
-                        <p className="mt-2">{formData.authData}</p>
-                    </div>
-                );
-            case "PIN":
-                return (
-                    <Form.Group className="mb-3">
-                        <Form.Label>PIN de acceso</Form.Label>
-                        <Form.Control
-                            type="password"
-                            maxLength={6}
-                            name="authData"
-                            className="bg-secondary text-light border-0"
-                            placeholder="Ingrese un PIN"
-                            value={formData.authData}
-                            onChange={handleChange}
-                        />
-                    </Form.Group>
-                );
-            case "Tarjeta":
-                return (
-                    <div className="text-center mt-3">
-                        <Button variant="outline-warning" onClick={simulateRFID}>
-                            <FaIdCard className="me-2" />
-                            Simular lectura de tarjeta
-                        </Button>
-                        <p className="mt-2">{formData.authData}</p>
-                    </div>
-                );
-            case "Reconocimiento Facial":
-                return (
-                    <div className="text-center mt-3">
-                        <Button
-                            variant="outline-info"
-                            onClick={() =>
-                                setFormData({ ...formData, authData: "Rostro registrado ✅" })
-                            }
-                        >
-                            <FaCamera className="me-2" />
-                            Capturar rostro
-                        </Button>
-                        <p className="mt-2">{formData.authData}</p>
-                    </div>
-                );
-            default:
-                return null;
-        }
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.email || !formData.username) return;
+        onSave(formData);
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={onHide} centered backdrop="static" animation={false}>
             <Modal.Header closeButton className="bg-dark text-light border-secondary">
-                <Modal.Title>{formData.id ? "Editar Usuario" : "Nuevo Usuario"}</Modal.Title>
+                <Modal.Title>
+                    {formData.id ? "Editar Usuario" : "Nuevo Usuario"}
+                </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="bg-dark text-light">
-                <Form>
+
+            <Form onSubmit={handleSubmit}>
+                <Modal.Body className="bg-dark text-light">
                     <Form.Group className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
@@ -110,6 +71,7 @@ export function UserModal({ show, onHide, user, onSave }) {
                             className="bg-secondary text-light border-0"
                             value={formData.name}
                             onChange={handleChange}
+                            required
                         />
                     </Form.Group>
 
@@ -121,50 +83,71 @@ export function UserModal({ show, onHide, user, onSave }) {
                             className="bg-secondary text-light border-0"
                             value={formData.email}
                             onChange={handleChange}
+                            required
                         />
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Rol</Form.Label>
-                        <Form.Select
-                            name="role"
+                        <Form.Label>Usuario</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="username"
                             className="bg-secondary text-light border-0"
-                            value={formData.role}
+                            value={formData.username}
                             onChange={handleChange}
-                        >
-                            <option>Admin</option>
-                            <option>Usuario</option>
-                            <option>Supervisor</option>
-                        </Form.Select>
+                            required
+                        />
                     </Form.Group>
+
+                    {!formData.id && (
+                        <Form.Group className="mb-3">
+                            <Form.Label>Contraseña</Form.Label>
+                            <Form.Control
+                                type="password"
+                                name="password"
+                                className="bg-secondary text-light border-0"
+                                placeholder="••••••"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                            />
+                        </Form.Group>
+                    )}
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Método de Autenticación</Form.Label>
+                        <Form.Label>Nivel de Administrador</Form.Label>
                         <Form.Select
-                            name="authMethod"
+                            name="adminLevel"
                             className="bg-secondary text-light border-0"
-                            value={formData.authMethod}
+                            value={formData.adminLevel}
                             onChange={handleChange}
                         >
-                            <option>Huella</option>
-                            <option>PIN</option>
-                            <option>Tarjeta</option>
-                            <option>Reconocimiento Facial</option>
+                            <option value={0}>Usuario Normal</option>
+                            <option value={1}>Administrador</option>
+                            <option value={2}>Super Usuario</option>
                         </Form.Select>
                     </Form.Group>
 
-                    {/* Render dinámico según el método */}
-                    {renderAuthField()}
-                </Form>
-            </Modal.Body>
-            <Modal.Footer className="bg-dark border-secondary">
-                <Button variant="secondary" onClick={onHide}>
-                    Cancelar
-                </Button>
-                <Button variant="light" onClick={() => onSave(formData)}>
-                    Guardar
-                </Button>
-            </Modal.Footer>
+                    <Form.Group className="mb-3" controlId="enabledSwitch">
+                        <Form.Check
+                            type="switch"
+                            name="enabled"
+                            label="Usuario Activo"
+                            checked={formData.enabled}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+                </Modal.Body>
+
+                <Modal.Footer className="bg-dark border-secondary">
+                    <Button variant="secondary" onClick={onHide}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" variant="light">
+                        Guardar
+                    </Button>
+                </Modal.Footer>
+            </Form>
         </Modal>
     );
 }

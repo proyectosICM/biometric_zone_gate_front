@@ -6,26 +6,27 @@ export function CompanyTable({ companies, onEdit, onDelete }) {
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
-            <th>#</th>
+            <th>Id</th>
             <th>Nombre</th>
-            <th>Rubro</th>
-            <th>Contacto</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {companies.map((c, index) => (
             <tr key={c.id}>
-              <td>{index + 1}</td>
+              <td>{c.id}</td>
               <td>{c.name}</td>
-              <td>{c.industry}</td>
-              <td>{c.contact}</td>
               <td>
                 <Button
                   variant="light"
                   size="sm"
                   className="me-2"
-                  onClick={() => onEdit(c)}
+                  onClick={() => {
+                    if (document.activeElement instanceof HTMLElement) {
+                      document.activeElement.blur();  
+                    }
+                    onEdit(c);
+                  }}
                 >
                   Editar
                 </Button>
