@@ -35,6 +35,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete }) {
                         <th>Sueño</th>
                         <th>Verificación</th>
                         <th>Push</th>
+                        <th>Empresa</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -51,6 +52,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete }) {
                             <td>{b.sleepEnabled ? "Sí" : "No"}</td>
                             <td>{verificationModeMap[b.verificationMode] || b.verificationMode}</td>
                             <td>{b.pushEnabled ? "Sí" : "No"}</td>
+                            <td>{b.company?.name || "—"}</td>
                             <td>
                                 <Button
                                     variant="light"

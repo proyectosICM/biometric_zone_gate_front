@@ -6,6 +6,7 @@ import { BiometricModal } from "./BiometricModal";
 import { CustomNavbar } from "../../../components/CustomNavbar";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+
 import {
   useGetAllDevicesPaginated,
   useListByCompanyPaginated,
@@ -14,13 +15,14 @@ import {
   useDeleteDevice,
 } from "../../../api/hooks/useDevice";
 
+import { useGetAllCompanies } from "../../../api/hooks/useCompany";
+
 export function BiometricCrud() {
   const navigate = useNavigate();
 
-  const company = 1; // Este valor normalmente vendrá del JWT o localStorage
+  const company = 1; // Normalmente del JWT o localStorage
   const role = "SA"; // "SA" = Super Admin
 
-  // Paginación y orden
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("name");
@@ -29,6 +31,8 @@ export function BiometricCrud() {
   // Queries
   const allDevicesQuery = useGetAllDevicesPaginated(page, size, sortBy, direction);
   const companyDevicesQuery = useListByCompanyPaginated(company, page, size, sortBy, direction);
+  const companiesQuery = useGetAllCompanies();
+  const companies = companiesQuery.data || [];
 
   const data = role === "SA" ? allDevicesQuery.data : companyDevicesQuery.data;
   const isLoading = role === "SA" ? allDevicesQuery.isLoading : companyDevicesQuery.isLoading;
@@ -66,7 +70,7 @@ export function BiometricCrud() {
 
       const payload = {
         ...deviceData,
-        company: { id: company },
+        company: role === "SA" ? { id: deviceData.companyId } : { id: company },
       };
 
       if (deviceData.id) {
@@ -161,7 +165,6 @@ export function BiometricCrud() {
   return (
     <div className="g-background">
       <CustomNavbar />
-
       <Container className="mt-4">
         <Row className="mb-3">
           <Col>
@@ -189,9 +192,7 @@ export function BiometricCrud() {
                 antiPassback: 0,
                 sleepEnabled: true,
                 verificationMode: 0,
-                userFpNum: 3,
-                reverifyTime: 0,
-                logHint: 0,
+                companyId: role === "SA" ? "" : company,
               });
               setShowModal(true);
             }}
@@ -231,6 +232,8 @@ export function BiometricCrud() {
           onHide={() => setShowModal(false)}
           biometric={editingDevice}
           onSave={handleSave}
+          role={role}
+          companies={companies}
         />
       </Container>
     </div>

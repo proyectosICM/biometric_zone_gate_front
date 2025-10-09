@@ -6,6 +6,7 @@ import { UserModal } from "./UserModal";
 import { CustomNavbar } from "../../../components/CustomNavbar";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+
 import {
     useGetAllUsersPaginated,
     useGetUsersByCompanyIdPaged,
@@ -14,10 +15,12 @@ import {
     useDeleteUser,
 } from "../../../api/hooks/useUser";
 
+import { useGetAllCompanies } from "../../../api/hooks/useCompany";
+
 export function UserCrud() {
     const navigate = useNavigate();
 
-    // En producción, estos valores vendrán del localStorage o del JWT
+    // En producción, estos valores vendrán del localStorage o JWT
     const company = 1;
     const role = "SA"; // "SA" = Super Admin
 
@@ -26,34 +29,34 @@ export function UserCrud() {
     const [sortBy, setSortBy] = useState("name");
     const [direction, setDirection] = useState("asc");
 
-    // ✅ Llamar SIEMPRE ambos hooks para cumplir reglas de React Hooks
+    // Users
     const allUsersQuery = useGetAllUsersPaginated(page, size, sortBy, direction);
     const companyUsersQuery = useGetUsersByCompanyIdPaged(company, page, size, sortBy, direction);
 
-    // Selecciona los datos correctos según el rol
     const data = role === "SA" ? allUsersQuery.data : companyUsersQuery.data;
     const isLoading = role === "SA" ? allUsersQuery.isLoading : companyUsersQuery.isLoading;
     const isError = role === "SA" ? allUsersQuery.isError : companyUsersQuery.isError;
+
+    // Companies (solo necesario para SA)
+    const companiesQuery = useGetAllCompanies();
+    const companies = companiesQuery.data || [];
 
     // Mutations
     const createUser = useCreateUser();
     const updateUser = useUpdateUser();
     const deleteUser = useDeleteUser();
 
-    // Estado del modal
+    // Modal
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
 
-    // Datos de usuarios
     const users = data?.content || [];
     const totalPages = data?.totalPages || 1;
 
-    // Paginación
     const handlePageChange = (newPage) => {
         if (newPage >= 0 && newPage < totalPages) setPage(newPage);
     };
 
-    // Crear o editar usuario
     const handleSave = async (userData) => {
         try {
             if (!userData.name || !userData.email || !userData.username) {
@@ -70,7 +73,7 @@ export function UserCrud() {
 
             const payload = {
                 ...userData,
-                company: { id: company },
+                company: role === "SA" ? { id: userData.companyId } : { id: company },
             };
 
             if (userData.id) {
@@ -109,7 +112,6 @@ export function UserCrud() {
         }
     };
 
-    // Eliminar usuario
     const handleDelete = (id) => {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -147,7 +149,6 @@ export function UserCrud() {
         });
     };
 
-    // Estados de carga y error
     if (isLoading) {
         return (
             <div className="g-background d-flex justify-content-center align-items-center vh-100">
@@ -196,6 +197,7 @@ export function UserCrud() {
                                 password: "",
                                 adminLevel: 0,
                                 enabled: true,
+                                companyId: role === "SA" ? "" : company,
                             });
                             setShowModal(true);
                         }}
@@ -240,6 +242,8 @@ export function UserCrud() {
                     onHide={() => setShowModal(false)}
                     user={editingUser}
                     onSave={handleSave}
+                    role={role}
+                    companies={companies}
                 />
             </Container>
         </div>

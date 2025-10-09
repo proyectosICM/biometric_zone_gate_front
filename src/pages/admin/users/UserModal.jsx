@@ -1,7 +1,7 @@
 import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
 
-export function UserModal({ show, onHide, user, onSave }) {
+export function UserModal({ show, onHide, user, onSave, role, companies }) {
     const [formData, setFormData] = useState({
         id: null,
         enrollId: "",
@@ -11,6 +11,7 @@ export function UserModal({ show, onHide, user, onSave }) {
         password: "",
         adminLevel: 0,
         enabled: true,
+        companyId: role === "SA" ? "" : 1,
     });
 
     useEffect(() => {
@@ -24,6 +25,7 @@ export function UserModal({ show, onHide, user, onSave }) {
                 password: "",
                 adminLevel: user.adminLevel ?? 0,
                 enabled: user.enabled ?? true,
+                companyId: user.company?.id || (role === "SA" ? "" : 1),
             });
         } else {
             setFormData({
@@ -35,9 +37,10 @@ export function UserModal({ show, onHide, user, onSave }) {
                 password: "",
                 adminLevel: 0,
                 enabled: true,
+                companyId: role === "SA" ? "" : 1,
             });
         }
-    }, [user, show]);
+    }, [user, show, role]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -50,6 +53,7 @@ export function UserModal({ show, onHide, user, onSave }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.name || !formData.email || !formData.username) return;
+        if (role === "SA" && !formData.companyId) return; // obligatorio seleccionar empresa
         onSave(formData);
     };
 
@@ -111,6 +115,24 @@ export function UserModal({ show, onHide, user, onSave }) {
                                 onChange={handleChange}
                                 required
                             />
+                        </Form.Group>
+                    )}
+
+                    {role === "SA" && (
+                        <Form.Group className="mb-3">
+                            <Form.Label>Empresa</Form.Label>
+                            <Form.Select
+                                name="companyId"
+                                className="bg-secondary text-light border-0"
+                                value={formData.companyId}
+                                onChange={(e) => setFormData({ ...formData, companyId: Number(e.target.value) })}
+                                required
+                            >
+                                <option value="">Seleccione una empresa</option>
+                                {companies.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </Form.Select>
                         </Form.Group>
                     )}
 

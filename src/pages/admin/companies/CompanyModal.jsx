@@ -10,7 +10,7 @@ export function CompanyModal({ show, onHide, company, onSave }) {
                 id: company.id || null,
                 name: company.name || "",
             });
-        } else {
+        } else { 
             setFormData({ id: null, name: "" });
         }
     }, [company, show]);
