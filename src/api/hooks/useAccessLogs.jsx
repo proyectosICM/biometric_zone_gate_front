@@ -127,3 +127,11 @@ export const useGetLogsByActionPaginated = (action, page, size, sortBy, directio
         enabled: !!action,
     });
 };
+
+export const useCountLogsByDeviceAndDay = (deviceId, date) => {
+    return useQuery({
+        queryKey: ["access-logs", "count", deviceId, date],
+        queryFn: () => accessLogsService.countLogsByDeviceAndDay(deviceId, date),
+        enabled: !!deviceId && !!date, // solo ejecuta si ambos existen
+    });
+};

@@ -18,7 +18,6 @@ export function UserAccessList() {
   // Modal descarga
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  // 🔥 Cargar usuarios de la empresa
   const { data, isLoading, isError } = useGetUsersByCompanyIdPaged(
     companyId,
     page,
@@ -27,7 +26,6 @@ export function UserAccessList() {
     direction
   );
 
-  // 🔥 Cargar accesos generales de la empresa
   const {
     data: companyLogs,
     isLoading: isLoadingLogs,

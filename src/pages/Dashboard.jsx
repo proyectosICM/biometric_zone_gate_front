@@ -6,50 +6,58 @@ import { ZoneCard } from "../components/ZoneCard/ZoneCard";
 import "./Dashboard.css";
 import { Container, Spinner } from "react-bootstrap";
 import * as deviceService from "../api/services/deviceService";
+import { countLogsByDeviceAndDay } from "../api/services/accessLogsService"; // función directa sin hooks
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const company = 1; // normalmente vendrá del JWT o localStorage
+  const company = 1;
+  const today = new Date().toISOString().split("T")[0];
 
   const [zones, setZones] = useState([]);
-  const [loadingDevices, setLoadingDevices] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDevices = async () => {
+    const fetchDevicesAndCounts = async () => {
       try {
         const allDevices = await deviceService.listByCompany(company);
 
-        // Convertimos los devices en "zonas" para mostrarlos en el Dashboard
-        const zonesData = allDevices.map((d) => ({
-          id: d.id,
-          name: d.name, // el nombre del dispositivo
-          recentCount: Math.floor(Math.random() * 5), // dato de ejemplo para accesos
-          accesses: [
-            { id: 1, user: "Usuario A", time: "10:00 AM" },
-            { id: 2, user: "Usuario B", time: "10:15 AM" },
-          ], // datos de ejemplo
-          device: d, // pasamos todo el device si luego quieres más info
-        }));
+        // Obtenemos los conteos en paralelo
+        const zonesWithCounts = await Promise.all(
+          allDevices.map(async (d) => {
+            const count = await countLogsByDeviceAndDay(d.id, today);
+            return {
+              id: d.id,
+              name: d.name,
+              device: d,
+              recentCount: count,
+              accesses: new Array(count).fill().map((_, i) => ({
+                id: i + 1,
+                user: `Usuario ${i + 1}`,
+                time: "Hoy",
+              })),
+            };
+          })
+        );
 
-        setZones(zonesData);
+        setZones(zonesWithCounts);
       } catch (error) {
-        console.error("Error fetching devices:", error);
+        console.error("Error fetching devices or counts:", error);
       } finally {
-        setLoadingDevices(false);
+        setLoading(false);
       }
     };
 
-    fetchDevices();
-  }, [company]);
+    fetchDevicesAndCounts();
+  }, [company, today]);
 
   const chartData = zones.map((z) => ({
     name: z.name,
-    ingresos: z.accesses.length,
+    ingresos: z.recentCount,
   }));
 
   const threshold = 3;
 
-  if (loadingDevices) {
+  if (loading) {
     return (
       <div className="g-background d-flex justify-content-center align-items-center vh-100">
         <Spinner animation="border" variant="light" />
@@ -65,7 +73,7 @@ export function Dashboard() {
           <ZoneCard
             key={z.id}
             zoneId={z.id}
-            zoneName={z.name} // ahora cada card es un dispositivo real
+            zoneName={z.name}
             recentAccesses={z.recentCount}
             accessList={z.accesses}
             device={z.device}

@@ -54,7 +54,7 @@ export const updateObservation = async (id, observation) => {
     try {
         const response = await api.put(
             `${endpoint}/${id}/observation`,
-            null, 
+            null,
             { params: { observation } }
         );
         return response.data;
@@ -185,6 +185,20 @@ export const getLogsByActionPaginated = async (
         return response.data;
     } catch (error) {
         console.error("Error fetching paginated logs by action:", error);
+        throw error;
+    }
+};
+
+export const countLogsByDeviceAndDay = async (deviceId, date) => {
+    try {
+        console.log(`${endpoint}/device/${deviceId}/count`)
+        console.log(date)
+        const response = await api.get(`${endpoint}/device/${deviceId}/count`, {
+            params: { date },
+        });
+        return response.data; // número (count)
+    } catch (error) {
+        console.error("Error counting logs by device and day:", error);
         throw error;
     }
 };
