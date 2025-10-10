@@ -1,21 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Table, Container, Button, Row, Col, Modal } from "react-bootstrap";
+import { Table, Container, Button, Row, Col, Modal, Spinner } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { FaArrowLeft } from "react-icons/fa";
+import { useGetLogsByUser } from "../api/hooks/useAccessLogs";
 
 export function UserAccessDetails() {
   const navigate = useNavigate();
   const { userId } = useParams();
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  const userAccesses = [
-    { id: 1, userId: "1", zone: "Zona A", time: "2025-07-17 08:30" },
-    { id: 2, userId: "1", zone: "Zona B", time: "2025-07-17 10:00" },
-    { id: 3, userId: "1", zone: "Zona A", time: "2025-07-18 09:15" },
-    { id: 4, userId: "2", zone: "Zona C", time: "2025-07-18 11:00" },
-    { id: 5, userId: "3", zone: "Zona D", time: "2025-07-18 14:20" },
-  ];
+  const { data: userLogs, isLoading, isError } = useGetLogsByUser(userId);
 
   const handleDownloadClick = (range) => {
     alert(`Descargando registros: ${range}`);
@@ -28,45 +23,84 @@ export function UserAccessDetails() {
       <Container className="mt-4">
         <Row className="mb-3">
           <Col>
-            <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={() => navigate(-1)}
+            >
               <FaArrowLeft className="me-2" />
               Atrás
             </Button>
           </Col>
         </Row>
 
-        <h2 className="text-white mb-3">Historial completo de accesos</h2>
-        <p className="text-light mb-4">Lista de accesos registrados de todos los usuarios.</p>
+        <h2 className="text-white mb-3">Historial de accesos del usuario #{userId}</h2>
+        <p className="text-light mb-4">
+          Lista completa de accesos registrados para este usuario.
+        </p>
 
-        <Table striped bordered hover variant="dark" className="rounded shadow">
-          <thead>
-            <tr>
-              <th>ID Usuario</th>
-              <th>Zona</th>
-              <th>Fecha y hora</th>
-            </tr>
-          </thead>
-          <tbody>
-            {userAccesses.map((entry) => (
-              <tr key={entry.id}>
-                <td>{entry.userId}</td>
-                <td>{entry.zone}</td>
-                <td>{entry.time}</td>
+        {/* Loader */}
+        {isLoading && (
+          <div className="text-center text-light">
+            <Spinner animation="border" variant="light" />
+            <p className="mt-2">Cargando registros...</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {isError && (
+          <div className="text-center text-danger">
+            <p>Error al cargar los registros. Inténtalo nuevamente.</p>
+          </div>
+        )}
+
+        {/* Tabla de logs */}
+        {!isLoading && !isError && (
+          <Table striped bordered hover variant="dark" className="rounded shadow">
+            <thead>
+              <tr>
+                <th>ID Log</th>
+                <th>Zona / Dispositivo</th>
+                <th>Acción</th>
+                <th>Fecha / Hora</th>
+                <th>Observación</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-        <div className="d-flex justify-content-end mt-3">
+            </thead>
+            <tbody>
+              {userLogs && userLogs.length > 0 ? (
+                userLogs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{log.id}</td>
+                    <td>{log.device?.name || "Desconocido"}</td>
+                    <td>{log.action}</td>
+                    <td>{new Date(log.timestamp).toLocaleString()}</td>
+                    <td>{log.observation || "-"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center text-muted">
+                    No hay registros disponibles.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        )}
 
+        <div className="d-flex justify-content-end mt-3">
           <Button variant="light" onClick={() => setShowDownloadModal(true)}>
             Descargar registros en Excel
           </Button>
-
         </div>
       </Container>
 
       {/* Modal de descarga */}
-      <Modal show={showDownloadModal} onHide={() => setShowDownloadModal(false)} centered>
+      <Modal
+        show={showDownloadModal}
+        onHide={() => setShowDownloadModal(false)}
+        centered
+      >
         <Modal.Header closeButton className="bg-dark text-light border-secondary">
           <Modal.Title>Seleccionar rango de descarga</Modal.Title>
         </Modal.Header>
@@ -74,7 +108,12 @@ export function UserAccessDetails() {
           <Row className="text-center">
             {["Semanal", "Mensual", "Anual", "Todos"].map((label) => (
               <Col xs={6} className="mb-3" key={label}>
-                <Button variant="outline-light" className="w-100 p-4" style={{ borderRadius: "0.5rem" }} onClick={() => handleDownloadClick(label)}>
+                <Button
+                  variant="outline-light"
+                  className="w-100 p-4"
+                  style={{ borderRadius: "0.5rem" }}
+                  onClick={() => handleDownloadClick(label)}
+                >
                   {label}
                 </Button>
               </Col>

@@ -35,6 +35,17 @@ export const useCreateAccessLog = () => {
     });
 };
 
+export const useUpdateObservation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, observation }) =>
+            accessLogsService.updateObservation(id, observation),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["access-logs"]);
+        },
+    });
+};
+ 
 export const useDeleteAccessLog = () => {
     const queryClient = useQueryClient();
     return useMutation({

@@ -50,6 +50,20 @@ export const createAccessLog = async (logData) => {
     }
 };
 
+export const updateObservation = async (id, observation) => {
+    try {
+        const response = await api.put(
+            `${endpoint}/${id}/observation`,
+            null, 
+            { params: { observation } }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error updating observation:", error);
+        throw error;
+    }
+};
+
 export const deleteAccessLog = async (id) => {
     try {
         await api.delete(`${endpoint}/${id}`);
@@ -109,7 +123,6 @@ export const getLogsByDevicePaginated = async (
     try {
         const params = { page, size, direction };
         if (sortBy) params.sortBy = sortBy;
-
         const response = await api.get(`${endpoint}/device/${deviceId}/page`, { params });
         return response.data;
     } catch (error) {

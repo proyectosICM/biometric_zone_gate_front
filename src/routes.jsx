@@ -15,15 +15,15 @@ import { ZoneAccessLog } from "./pages/ZoneAccessLog";
 
 export const routes = [
   { path: "/", component: <Dashboard /> },
-  { path: "/zona-ingresos/:id", component: <ZoneAccessLog /> },
-  { path: "/config-device/:id", component: <DeviceConfiguration /> },
+  { path: "/zona-ingresos/:deviceId", component: <ZoneAccessLog /> },
+  { path: "/config-device/:deviceId", component: <DeviceConfiguration /> },
   { path: "/detalle-ingreso/:id", component: <AccessLogDetail /> },
   { path: "/usuarios-permitidos/:id", component: <AllowedUsersManager /> },
 
   { path: "/observations", component: <Observations /> },
 
   { path: "/user-access", component: <UserAccessList /> },
-  { path: "/user-access/:id", component: <UserAccessDetails /> },
+  { path: "/user-access/:userId", component: <UserAccessDetails /> },
 
   { path: "/administracion", component: <Administration /> },
   { path: "/users", component: <UserCrud /> },

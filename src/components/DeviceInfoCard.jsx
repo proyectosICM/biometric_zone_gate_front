@@ -1,10 +1,21 @@
-import { Card, Row, Col, Button, Modal, Form } from "react-bootstrap";
-import { useState } from "react";
+import { Card, Row, Col, Button, Modal, Form, Spinner } from "react-bootstrap";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { useGetDeviceById, useUpdateDevice } from "../api/hooks/useDevice";
 
-export function DeviceInfoCard({ deviceInfo, onEdit }) {
+export function DeviceInfoCard({ deviceId }) {
+  const { data: deviceInfo, isLoading, isError } = useGetDeviceById(deviceId);
+  const updateDevice = useUpdateDevice();
+
   const [showModal, setShowModal] = useState(false);
-  const [editedDevice, setEditedDevice] = useState({ ...deviceInfo });
+  const [editedDevice, setEditedDevice] = useState(null);
+
+  // Cuando los datos cambian (o se cargan), copiarlos al estado local
+  useEffect(() => {
+    if (deviceInfo) {
+      setEditedDevice({ ...deviceInfo });
+    }
+  }, [deviceInfo]);
 
   const handleChange = (field, value) => {
     setEditedDevice((prev) => ({
@@ -13,30 +24,51 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
     }));
   };
 
-  const handleAdminPwdChange = (field, value) => {
-    setEditedDevice((prev) => ({
-      ...prev,
-      adminPwd: {
-        ...prev.adminPwd,
-        [field]: value,
-      },
-    }));
-  };
-
   const handleSave = () => {
-    console.log("Guardando cambios:", editedDevice);
-    onEdit?.(editedDevice);
-    setShowModal(false);
-
-    Swal.fire({
-      title: "Configuración guardada",
-      text: "Los cambios del dispositivo se aplicaron correctamente.",
-      icon: "success",
-      background: "#212529",
-      color: "#fff",
-      confirmButtonColor: "#198754",
-    });
+    updateDevice.mutate(
+      { id: deviceId, data: editedDevice },
+      {
+        onSuccess: () => {
+          setShowModal(false);
+          Swal.fire({
+            title: "Configuración guardada",
+            text: "Los cambios del dispositivo se aplicaron correctamente.",
+            icon: "success",
+            background: "#212529",
+            color: "#fff",
+            confirmButtonColor: "#198754",
+          });
+        },
+        onError: () => {
+          Swal.fire({
+            title: "Error",
+            text: "No se pudo actualizar el dispositivo.",
+            icon: "error",
+            background: "#212529",
+            color: "#fff",
+          });
+        },
+      }
+    );
   };
+
+  // Mostrar estados de carga o error
+  if (isLoading || !editedDevice) {
+    return (
+      <div className="text-center text-light py-5">
+        <Spinner animation="border" variant="light" /> <br />
+        <small>Cargando dispositivo...</small>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center text-danger py-5">
+        Error al cargar los datos del dispositivo.
+      </div>
+    );
+  }
 
   return (
     <>
@@ -47,20 +79,23 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
         <Card.Body>
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Nombre del dispositivo:</strong> {deviceInfo.devName}
+              <strong>Nombre:</strong> {deviceInfo.name}
             </Col>
             <Col md={6}>
-              <strong>Host del servidor:</strong> {deviceInfo.serverHost}
+              <strong>Host:</strong> {deviceInfo.host}
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Puerto del servidor:</strong> {deviceInfo.serverPort}
+              <strong>Puerto:</strong> {deviceInfo.port}
             </Col>
             <Col md={6}>
-              <strong>Push habilitado:</strong> {deviceInfo.pushEnable}
+              <strong>Push habilitado:</strong>{" "}
+              {deviceInfo.pushEnabled ? "Sí" : "No"}
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col md={6}>
               <strong>Idioma:</strong> {deviceInfo.language}
@@ -69,74 +104,70 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
               <strong>Volumen:</strong> {deviceInfo.volume}
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Anti-passback:</strong> {deviceInfo.antiPass}
+              <strong>Anti-passback:</strong> {deviceInfo.antiPassback}
             </Col>
             <Col md={6}>
-              <strong>Tiempo de sueño:</strong> {deviceInfo.sleepTime} min
+              <strong>Modo de verificación:</strong>{" "}
+              {deviceInfo.verificationMode}
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Modo de verificación:</strong> {deviceInfo.verifyMode}
-            </Col>
-          </Row>
-          <hr className="border-light" />
-          <Row className="mb-3">
-            <Col md={6}>
-              <strong>Contraseña antigua de admin:</strong>{" "}
-              {deviceInfo.adminPwd.oldPwd}
+              <strong>Sleep habilitado:</strong>{" "}
+              {deviceInfo.sleepEnabled ? "Sí" : "No"}
             </Col>
             <Col md={6}>
-              <strong>Nueva contraseña:</strong> {deviceInfo.adminPwd.newPwd}
+              <strong>Tiempo de reverificación:</strong>{" "}
+              {deviceInfo.reverifyTime} min
             </Col>
           </Row>
 
           <div className="text-end mt-4">
             <Button variant="outline-light" onClick={() => setShowModal(true)}>
-              Cambiar configuración de biométrico
+              Editar configuración
             </Button>
           </div>
         </Card.Body>
       </Card>
 
+      {/* -------- MODAL EDICIÓN -------- */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header
-          closeButton
-          className="bg-dark text-light border-secondary"
-        >
+        <Modal.Header closeButton className="bg-dark text-light border-secondary">
           <Modal.Title>Editar Configuración del Dispositivo</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nombre del dispositivo</Form.Label>
+              <Form.Label>Nombre</Form.Label>
               <Form.Control
                 type="text"
                 className="bg-secondary text-light border-0"
-                value={editedDevice.devName}
-                onChange={(e) => handleChange("devName", e.target.value)}
+                value={editedDevice.name}
+                onChange={(e) => handleChange("name", e.target.value)}
               />
             </Form.Group>
 
             <Row className="mb-3">
               <Col>
-                <Form.Label>Host del servidor</Form.Label>
+                <Form.Label>Host</Form.Label>
                 <Form.Control
                   type="text"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.serverHost}
-                  onChange={(e) => handleChange("serverHost", e.target.value)}
+                  value={editedDevice.host}
+                  onChange={(e) => handleChange("host", e.target.value)}
                 />
               </Col>
               <Col>
-                <Form.Label>Puerto del servidor</Form.Label>
+                <Form.Label>Puerto</Form.Label>
                 <Form.Control
-                  type="number"
+                  type="text"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.serverPort}
-                  onChange={(e) => handleChange("serverPort", e.target.value)}
+                  value={editedDevice.port}
+                  onChange={(e) => handleChange("port", e.target.value)}
                 />
               </Col>
             </Row>
@@ -145,8 +176,10 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
               <Form.Label>Push habilitado</Form.Label>
               <Form.Select
                 className="bg-secondary text-light border-0"
-                value={editedDevice.pushEnable}
-                onChange={(e) => handleChange("pushEnable", e.target.value)}
+                value={editedDevice.pushEnabled ? "true" : "false"}
+                onChange={(e) =>
+                  handleChange("pushEnabled", e.target.value === "true")
+                }
               >
                 <option value="true">Sí</option>
                 <option value="false">No</option>
@@ -157,10 +190,12 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
               <Col>
                 <Form.Label>Idioma</Form.Label>
                 <Form.Control
-                  type="text"
+                  type="number"
                   className="bg-secondary text-light border-0"
                   value={editedDevice.language}
-                  onChange={(e) => handleChange("language", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("language", Number(e.target.value))
+                  }
                 />
               </Col>
               <Col>
@@ -169,7 +204,9 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
                   type="number"
                   className="bg-secondary text-light border-0"
                   value={editedDevice.volume}
-                  onChange={(e) => handleChange("volume", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("volume", Number(e.target.value))
+                  }
                 />
               </Col>
             </Row>
@@ -177,58 +214,50 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
             <Row className="mb-3">
               <Col>
                 <Form.Label>Anti-passback</Form.Label>
-                <Form.Select
-                  className="bg-secondary text-light border-0"
-                  value={editedDevice.antiPass}
-                  onChange={(e) => handleChange("antiPass", e.target.value)}
-                >
-                  <option value="true">Sí</option>
-                  <option value="false">No</option>
-                </Form.Select>
-              </Col>
-              <Col>
-                <Form.Label>Tiempo de sueño (min)</Form.Label>
                 <Form.Control
                   type="number"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.sleepTime}
-                  onChange={(e) => handleChange("sleepTime", e.target.value)}
+                  value={editedDevice.antiPassback}
+                  onChange={(e) =>
+                    handleChange("antiPassback", Number(e.target.value))
+                  }
+                />
+              </Col>
+              <Col>
+                <Form.Label>Modo de verificación</Form.Label>
+                <Form.Control
+                  type="number"
+                  className="bg-secondary text-light border-0"
+                  value={editedDevice.verificationMode}
+                  onChange={(e) =>
+                    handleChange("verificationMode", Number(e.target.value))
+                  }
                 />
               </Col>
             </Row>
 
             <Form.Group className="mb-3">
-              <Form.Label>Modo de verificación</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Label>Sleep habilitado</Form.Label>
+              <Form.Select
                 className="bg-secondary text-light border-0"
-                value={editedDevice.verifyMode}
-                onChange={(e) => handleChange("verifyMode", e.target.value)}
-              />
-            </Form.Group>
-
-            <hr className="border-light" />
-
-            <Form.Group className="mb-3">
-              <Form.Label>Contraseña antigua de admin</Form.Label>
-              <Form.Control
-                type="password"
-                className="bg-secondary text-light border-0"
-                value={editedDevice.adminPwd.oldPwd}
+                value={editedDevice.sleepEnabled ? "true" : "false"}
                 onChange={(e) =>
-                  handleAdminPwdChange("oldPwd", e.target.value)
+                  handleChange("sleepEnabled", e.target.value === "true")
                 }
-              />
+              >
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+              </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Nueva contraseña</Form.Label>
+              <Form.Label>Tiempo de reverificación (min)</Form.Label>
               <Form.Control
-                type="password"
+                type="number"
                 className="bg-secondary text-light border-0"
-                value={editedDevice.adminPwd.newPwd}
+                value={editedDevice.reverifyTime}
                 onChange={(e) =>
-                  handleAdminPwdChange("newPwd", e.target.value)
+                  handleChange("reverifyTime", Number(e.target.value))
                 }
               />
             </Form.Group>
@@ -238,8 +267,8 @@ export function DeviceInfoCard({ deviceInfo, onEdit }) {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancelar
           </Button>
-          <Button variant="light" onClick={handleSave}>
-            Guardar cambios
+          <Button variant="light" onClick={handleSave} disabled={updateDevice.isLoading}>
+            {updateDevice.isLoading ? "Guardando..." : "Guardar cambios"}
           </Button>
         </Modal.Footer>
       </Modal>
