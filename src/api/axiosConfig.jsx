@@ -1,8 +1,8 @@
 import axios from "axios";
 
-//export const API_BASE_URL = "http://telemetriaperu.com:7079/api/v1/";
+export const API_BASE_URL = "http://telemetriaperu.com:7079/api";
 
-export const API_BASE_URL = "http://localhost:7070/api";
+//export const API_BASE_URL = "http://localhost:7070/api";
 
 // Configuración base de Axios
 const api = axios.create({
