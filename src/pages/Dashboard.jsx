@@ -16,6 +16,7 @@ import { Container, Spinner } from "react-bootstrap";
 import * as deviceService from "../api/services/deviceService";
 import { useGetLatestLogsByDeviceToday } from "../api/hooks/useAccessLogs";
 import { getEntryExitTimeString } from "../utils/formatDate";
+import { FaChartLine } from "react-icons/fa";
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -74,6 +75,7 @@ export function Dashboard() {
       {/* --- Gráfico resumen --- */}
       <Container className="mt-4">
         <h2 className="text-white text-center mb-4">
+          <FaChartLine className="me-2 text-success" style={{ fontSize: "1.4rem" }} />
           Resumen de ingresos por dispositivo
         </h2>
         <ResponsiveContainer width="100%" height={450}>

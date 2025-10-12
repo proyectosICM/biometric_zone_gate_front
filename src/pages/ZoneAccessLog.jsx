@@ -3,6 +3,23 @@ import { useState } from "react";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { Container, Table, Button, Stack, Row, Col, Modal, Form } from "react-bootstrap";
 import { FaFingerprint, FaArrowLeft } from "react-icons/fa";
+import {
+  FaIdBadge,
+  FaUser,
+  FaMicrochip,
+  FaBuilding,
+  FaBolt,
+  FaExchangeAlt,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaHourglassHalf,
+  FaHardHat,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaStickyNote,
+  FaTools,
+} from "react-icons/fa"
+
 import Swal from "sweetalert2";
 import {
   useGetLogsByDevicePaginated,
@@ -11,8 +28,9 @@ import {
 import { formatDateTime, formatSecondsToHHMMSS, getDateAndDayFromTimestamp, getDateFromTimestamp } from "../utils/formatDate.jsx";
 
 export function ZoneAccessLog() {
-  const { deviceId } = useParams(); 
+  const { deviceId } = useParams();
   const navigate = useNavigate();
+  const role = "SAS"
 
   // Estados del modal
   const [showModal, setShowModal] = useState(false);
@@ -32,7 +50,7 @@ export function ZoneAccessLog() {
 
   // Paginación
   const [page, setPage] = useState(0);
-  const size = 5;
+  const size = 4;
   const direction = "desc";
 
   // Datos del backend
@@ -147,19 +165,21 @@ export function ZoneAccessLog() {
           <Table striped bordered hover variant="dark" className="align-middle mb-0">
             <thead className="table-dark text-center">
               <tr>
-                <th>ID</th>
-                <th>Usuario</th>
-                <th>Dispositivo</th>
-                <th>Empresa</th>
-                <th>Evento</th>
-                <th>Acción</th>
-                <th>Entrada</th>
-                <th>Salida</th>
-                <th>Duración (s)</th>
-                <th>EPP Correcto</th>
-                <th>Éxito</th>
-                <th>Observación</th>
-                <th>Acciones</th>
+                <th><FaIdBadge className="me-1" /> ID</th>
+                <th><FaUser className="me-1" /> Usuario</th>
+                <th><FaMicrochip className="me-1" /> Dispositivo</th>
+                {role === "SA" && (
+                  <th><FaBuilding className="me-1" /> Empresa</th>
+                )}
+                <th><FaBolt className="me-1" /> Evento</th>
+                {/* <th><FaExchangeAlt className="me-1" /> Acción</th> */}
+                <th><FaSignInAlt className="me-1 text-success" /> Entrada</th>
+                <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
+                <th><FaHourglassHalf className="me-1" /> Duración</th>
+                <th><FaHardHat className="me-1 text-warning" /> EPP</th>
+                <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
+                <th><FaStickyNote className="me-1" /> Observación</th>
+                <th><FaTools className="me-1" /> Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -175,9 +195,12 @@ export function ZoneAccessLog() {
                     <td>{log.id}</td>
                     <td>{log.user?.name || "—"}</td>
                     <td>{log.device?.name || "—"}</td>
-                    <td>{log.company?.name || "—"}</td>
+                    {role === "SA" && (
+                      <td>{log.company?.name || "—"}</td>
+                    )}
+                    {/*<td>{log.action}</td>*/}
+
                     <td>{log.eventType?.name || "—"}</td>
-                    <td>{log.action}</td>
                     <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
                     <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
                     <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>
