@@ -1,26 +1,27 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, Nav, Navbar } from "react-bootstrap";
 import { FaClipboardList, FaHome, FaSignOutAlt, FaTachometerAlt, FaUserShield } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 export function CustomNavbar() {
-  const navigation = useNavigate();
-  const role = localStorage.getItem("bk_role");
+  const navigate = useNavigate();
+  const role = localStorage.getItem("bzg_role");
+  const token = localStorage.getItem("bzg_token");
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    }
+  }, [token, navigate]);
 
   const handleLogout = () => {
-    //clearLocalStorage();
-    localStorage.removeItem("bzg_token");
-    localStorage.removeItem("bzg_userId");
-    localStorage.removeItem("bzg_name");
-    localStorage.removeItem("bzg_username");
-    localStorage.removeItem("bzg_companyId");
-    localStorage.removeItem("bzg_role");
-    navigation("/login");
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
-      <Navbar.Brand style={{ marginLeft: "25px", cursor: "pointer" }} onClick={() => navigation("/")}>
+      <Navbar.Brand style={{ marginLeft: "25px", cursor: "pointer" }} onClick={() => navigate("/")}>
         <FaHome /> Inicio
       </Navbar.Brand>
 
@@ -31,17 +32,17 @@ export function CustomNavbar() {
       <Navbar.Collapse id="basic-navbar-nav">
         {/* Centering the navigation links */}
         <Nav className="mx-auto">
-          <Nav.Link onClick={() => navigation("/")} style={{ borderBottom: "none", textDecoration: "none" }}>
+          <Nav.Link onClick={() => navigate("/")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaTachometerAlt style={{ marginRight: "5px" }} /> Panel Principal
           </Nav.Link>
           {/*<Nav.Link onClick={() => navigation("/observations")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaClipboardList style={{ marginRight: "5px" }} /> Observacioness
           </Nav.Link>*/}
-          <Nav.Link onClick={() => navigation("/user-access")} style={{ borderBottom: "none", textDecoration: "none" }}>
+          <Nav.Link onClick={() => navigate("/user-access")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaClipboardList style={{ marginRight: "5px" }} /> Acesos de usuarios
           </Nav.Link>
           {/* <Nav.Link onClick={() => navigation("/records-panel")}>Panel Registros</Nav.Link> */}
-          <Nav.Link onClick={() => navigation("/administracion")} style={{ borderBottom: "none", textDecoration: "none" }}>
+          <Nav.Link onClick={() => navigate("/administracion")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaUserShield style={{ marginRight: "5px" }} /> Administración
           </Nav.Link>
         </Nav>

@@ -1,11 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as userService from "../services/userService";
 
+export const useLogin = () => {
+  return useMutation({
+    mutationFn: userService.login,
+  });
+};
+
+export const useGetUserByUsername = (username) => {
+  return useQuery({
+    queryKey: ["user", "username", username],
+    queryFn: () => userService.getUserByUsername(username),
+    enabled: !!username,
+  });
+};
+
 export const useGetAllUsers = () => {
     return useQuery({
         queryKey: ["users"],
         queryFn: userService.getAllUsers,
-    });
+    }); 
 };
 
 export const useGetAllUsersPaginated = (page, size, sortBy, direction) => {

@@ -29,8 +29,9 @@ export const useCreateAccessLog = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: accessLogsService.createAccessLog,
-        onSuccess: () => {
-            queryClient.invalidateQueries(["access-logs"]);
+        onSuccess: (newLog) => {
+            queryClient.invalidateQueries(["access-logs"]); // general
+            queryClient.invalidateQueries(["access-logs", "device", newLog.device.id]);
         },
     });
 };
@@ -141,6 +142,8 @@ export const useGetLatestLogsByDeviceToday = (deviceId) => {
         queryKey: ["access-logs", "device", deviceId, "latest-today"],
         queryFn: () => accessLogsService.getLatestLogsByDeviceToday(deviceId),
         enabled: !!deviceId,
-        staleTime: 1000 * 60,
+        //staleTime: 1000 * 60,
+        refetchInterval: 30000,
+        staleTime: 0,
     });
 };

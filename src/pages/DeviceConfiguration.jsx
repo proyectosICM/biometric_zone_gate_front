@@ -1,57 +1,83 @@
 import React, { useState } from "react";
-import { Container, Row, Col, Card, Table, Button } from "react-bootstrap";
+import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { DeviceInfoCard } from "../components/DeviceInfoCard";
 import { AllowedUsersCard } from "../components/AllowedUsersCard";
-import { useNavigate, useParams } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
+import { useGetDeviceById } from "../api/hooks/useDevice";
+import { useGetByDeviceIdAndEnabledTrue } from "../api/hooks/useDeviceUserAccess";
 
 export function DeviceConfiguration() {
   const { deviceId } = useParams();
-  const [deviceInfo] = useState({
-    devName: "Entrada Principal",
-    serverHost: "192.168.1.100",
-    serverPort: "8080",
-    pushEnable: "yes",
-    language: "es",
-    volume: "7",
-    antiPass: "no",
-    sleepTime: "5",
-    verifyMode: "fingerprint",
-    adminPwd: {
-      oldPwd: "admin123",
-      newPwd: "nuevaClave456",
-    },
-  });
-
-  const [allowedUsers] = useState([
-    { id: 1, name: "Carlos R.", role: "Empleado", authMode: "Huella" },
-    { id: 2, name: "Lucía V.", role: "Supervisor", authMode: "Facial" },
-    { id: 3, name: "Marcos T.", role: "Seguridad", authMode: "Tarjeta" },
-  ]);
-
   const navigate = useNavigate();
+
+  // Query: obtener datos del dispositivo
+  const {
+    data: deviceInfo,
+    isLoading: isLoadingDevice,
+    isError: isDeviceError,
+  } = useGetDeviceById(deviceId);
+
+  // Query: usuarios permitidos habilitados, paginados
+  const page = 0;
+  const size = 10;
+  const {
+    data: allowedUsersPage,
+    isLoading: isLoadingUsers,
+    isError: isUsersError,
+  } = useGetByDeviceIdAndEnabledTrue(deviceId, page, size);
+
+  // Si los datos se están cargando
+  if (isLoadingDevice || isLoadingUsers) {
+    return (
+      <div className="text-center text-light py-5 g-background">
+        <Spinner animation="border" variant="light" /> <br />
+        <small>Cargando configuración del dispositivo...</small>
+      </div>
+    );
+  }
+
+  // Si ocurre un error
+  if (isDeviceError || isUsersError) {
+    return (
+      <div className="text-center text-danger py-5 g-background">
+        Error al cargar los datos del dispositivo o los usuarios permitidos.
+      </div>
+    );
+  }
+
+  // Si todo está correcto
+  const allowedUsers = allowedUsersPage?.content || [];
+
   const handleEditUsers = () => {
-    navigate(`/usuarios-permitidos/1`);
+    navigate(`/usuarios-permitidos/${deviceId}`);
   };
+
   return (
     <div className="g-background">
       <CustomNavbar />
 
       <Container className="mt-4">
+        {/* Botón de volver */}
         <Row className="mb-3">
           <Col>
-            <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={() => navigate(-1)}
+            >
               <FaArrowLeft className="me-2" />
               Atrás
             </Button>
           </Col>
         </Row>
-        {/* Tarjeta de configuración */}
-        <DeviceInfoCard deviceId={deviceId} deviceInfo={deviceInfo} onEdit={() => console.log("Editar configuración de biométrico")} />
+
+        {/* Información del dispositivo */}
+        <DeviceInfoCard deviceId={deviceId} />
 
         {/* Lista de usuarios permitidos */}
-        <AllowedUsersCard users={allowedUsers} onEdit={handleEditUsers} />
+        <AllowedUsersCard usersPage={allowedUsersPage} onEdit={handleEditUsers} />
       </Container>
     </div>
   );

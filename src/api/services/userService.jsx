@@ -2,6 +2,24 @@ import api from "../axiosConfig";
 
 const endpoint = "/users";
 
+const AUTH_API = "http://telemetriaperu.com:7071";
+
+
+export const login = async ({ username, password }) => {
+  const response = await api.post(`${AUTH_API}/login`, { username, password });
+  return response.data;
+};
+
+export const getUserByUsername = async (username) => {
+  try {
+    const response = await api.get(`${endpoint}/username/${username}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user by username:", error);
+    throw error;
+  }
+};
+
 export const getAllUsers = async () => {
     try {
         const response = await api.get(endpoint);

@@ -10,7 +10,7 @@ export function DeviceInfoCard({ deviceId }) {
   const [showModal, setShowModal] = useState(false);
   const [editedDevice, setEditedDevice] = useState(null);
 
-  // Cuando los datos cambian (o se cargan), copiarlos al estado local
+  // Copiar datos cuando cambien
   useEffect(() => {
     if (deviceInfo) {
       setEditedDevice({ ...deviceInfo });
@@ -52,7 +52,6 @@ export function DeviceInfoCard({ deviceId }) {
     );
   };
 
-  // Mostrar estados de carga o error
   if (isLoading || !editedDevice) {
     return (
       <div className="text-center text-light py-5">
@@ -79,20 +78,28 @@ export function DeviceInfoCard({ deviceId }) {
         <Card.Body>
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Nombre:</strong> {deviceInfo.name}
+              <strong>ID:</strong> {deviceInfo.id}
             </Col>
             <Col md={6}>
-              <strong>Host:</strong> {deviceInfo.host}
+              <strong>SN:</strong> {deviceInfo.sn}
             </Col>
           </Row>
 
           <Row className="mb-3">
             <Col md={6}>
-              <strong>Puerto:</strong> {deviceInfo.port}
+              <strong>Nombre:</strong> {deviceInfo.name}
             </Col>
             <Col md={6}>
-              <strong>Push habilitado:</strong>{" "}
-              {deviceInfo.pushEnabled ? "Sí" : "No"}
+              <strong>Compañía:</strong> {deviceInfo.company?.name || "—"}
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col md={6}>
+              <strong>Host:</strong> {deviceInfo.host}
+            </Col>
+            <Col md={6}>
+              <strong>Puerto:</strong> {deviceInfo.port}
             </Col>
           </Row>
 
@@ -121,8 +128,24 @@ export function DeviceInfoCard({ deviceId }) {
               {deviceInfo.sleepEnabled ? "Sí" : "No"}
             </Col>
             <Col md={6}>
+              <strong>Push habilitado:</strong>{" "}
+              {deviceInfo.pushEnabled ? "Sí" : "No"}
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col md={6}>
+              <strong>Usuarios registrados:</strong> {deviceInfo.userFpNum}
+            </Col>
+            <Col md={6}>
               <strong>Tiempo de reverificación:</strong>{" "}
               {deviceInfo.reverifyTime} min
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col md={12}>
+              <strong>Log Hint:</strong> {deviceInfo.logHint}
             </Col>
           </Row>
 
@@ -134,7 +157,7 @@ export function DeviceInfoCard({ deviceId }) {
         </Card.Body>
       </Card>
 
-      {/* -------- MODAL EDICIÓN -------- */}
+      {/* -------- MODAL DE EDICIÓN -------- */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton className="bg-dark text-light border-secondary">
           <Modal.Title>Editar Configuración del Dispositivo</Modal.Title>
@@ -146,7 +169,7 @@ export function DeviceInfoCard({ deviceId }) {
               <Form.Control
                 type="text"
                 className="bg-secondary text-light border-0"
-                value={editedDevice.name}
+                value={editedDevice.name || ""}
                 onChange={(e) => handleChange("name", e.target.value)}
               />
             </Form.Group>
@@ -157,7 +180,7 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="text"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.host}
+                  value={editedDevice.host || ""}
                   onChange={(e) => handleChange("host", e.target.value)}
                 />
               </Col>
@@ -166,25 +189,11 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="text"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.port}
+                  value={editedDevice.port || ""}
                   onChange={(e) => handleChange("port", e.target.value)}
                 />
               </Col>
             </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Push habilitado</Form.Label>
-              <Form.Select
-                className="bg-secondary text-light border-0"
-                value={editedDevice.pushEnabled ? "true" : "false"}
-                onChange={(e) =>
-                  handleChange("pushEnabled", e.target.value === "true")
-                }
-              >
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </Form.Select>
-            </Form.Group>
 
             <Row className="mb-3">
               <Col>
@@ -192,7 +201,7 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="number"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.language}
+                  value={editedDevice.language ?? 0}
                   onChange={(e) =>
                     handleChange("language", Number(e.target.value))
                   }
@@ -203,7 +212,7 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="number"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.volume}
+                  value={editedDevice.volume ?? 0}
                   onChange={(e) =>
                     handleChange("volume", Number(e.target.value))
                   }
@@ -217,7 +226,7 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="number"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.antiPassback}
+                  value={editedDevice.antiPassback ?? 0}
                   onChange={(e) =>
                     handleChange("antiPassback", Number(e.target.value))
                   }
@@ -228,7 +237,7 @@ export function DeviceInfoCard({ deviceId }) {
                 <Form.Control
                   type="number"
                   className="bg-secondary text-light border-0"
-                  value={editedDevice.verificationMode}
+                  value={editedDevice.verificationMode ?? 0}
                   onChange={(e) =>
                     handleChange("verificationMode", Number(e.target.value))
                   }
@@ -251,13 +260,39 @@ export function DeviceInfoCard({ deviceId }) {
             </Form.Group>
 
             <Form.Group className="mb-3">
+              <Form.Label>Push habilitado</Form.Label>
+              <Form.Select
+                className="bg-secondary text-light border-0"
+                value={editedDevice.pushEnabled ? "true" : "false"}
+                onChange={(e) =>
+                  handleChange("pushEnabled", e.target.value === "true")
+                }
+              >
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
               <Form.Label>Tiempo de reverificación (min)</Form.Label>
               <Form.Control
                 type="number"
                 className="bg-secondary text-light border-0"
-                value={editedDevice.reverifyTime}
+                value={editedDevice.reverifyTime ?? 0}
                 onChange={(e) =>
                   handleChange("reverifyTime", Number(e.target.value))
+                }
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Log Hint</Form.Label>
+              <Form.Control
+                type="number"
+                className="bg-secondary text-light border-0"
+                value={editedDevice.logHint ?? 0}
+                onChange={(e) =>
+                  handleChange("logHint", Number(e.target.value))
                 }
               />
             </Form.Group>
@@ -267,7 +302,11 @@ export function DeviceInfoCard({ deviceId }) {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancelar
           </Button>
-          <Button variant="light" onClick={handleSave} disabled={updateDevice.isLoading}>
+          <Button
+            variant="light"
+            onClick={handleSave}
+            disabled={updateDevice.isLoading}
+          >
             {updateDevice.isLoading ? "Guardando..." : "Guardar cambios"}
           </Button>
         </Modal.Footer>
