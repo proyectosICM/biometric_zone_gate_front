@@ -202,3 +202,13 @@ export const countLogsByDeviceAndDay = async (deviceId, date) => {
         throw error;
     }
 };
+
+export const getLatestLogsByDeviceToday = async (deviceId) => {
+    try {
+        const response = await api.get(`${endpoint}/device/${deviceId}/latest`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching latest logs today by device:", error);
+        throw error;
+    }
+};

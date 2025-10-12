@@ -45,7 +45,7 @@ export const useUpdateObservation = () => {
         },
     });
 };
- 
+
 export const useDeleteAccessLog = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -82,7 +82,7 @@ export const useGetLogsByDevice = (deviceId) => {
     });
 };
 
-export const useGetLogsByDevicePaginated = (deviceId, page, size, sortBy, direction) => {
+export const useGetLogsByDevicePaginated = (deviceId, page, size, { sortBy, direction }) => {
     return useQuery({
         queryKey: ["access-logs", "device", deviceId, page, size, sortBy, direction],
         queryFn: () =>
@@ -133,5 +133,14 @@ export const useCountLogsByDeviceAndDay = (deviceId, date) => {
         queryKey: ["access-logs", "count", deviceId, date],
         queryFn: () => accessLogsService.countLogsByDeviceAndDay(deviceId, date),
         enabled: !!deviceId && !!date, // solo ejecuta si ambos existen
+    });
+};
+
+export const useGetLatestLogsByDeviceToday = (deviceId) => {
+    return useQuery({
+        queryKey: ["access-logs", "device", deviceId, "latest-today"],
+        queryFn: () => accessLogsService.getLatestLogsByDeviceToday(deviceId),
+        enabled: !!deviceId,
+        staleTime: 1000 * 60,
     });
 };

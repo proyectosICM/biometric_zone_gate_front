@@ -51,6 +51,17 @@ export const getTimeFromTimestamp = (timestamp) => {
   return `${formattedTime}`;
 };
 
+export const getEntryExitTimeString = (entryTime, exitTime) => {
+  if (!entryTime) return "—";
+
+  const entry = getTimeFromTimestamp(entryTime);
+  const exit = exitTime ? getTimeFromTimestamp(exitTime) : null;
+
+  return exit
+    ? `Ingreso: ${entry} | Salida: ${exit}`
+    : `Ingreso: ${entry}`;
+};
+
 // Calculates the difference in hours and minutes between two given timestamps.
 export const calculateHoursDifference = (startTimestamp, endTimestamp) => {
   if (!startTimestamp || !endTimestamp) return null;

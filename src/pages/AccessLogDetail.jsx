@@ -1,141 +1,169 @@
-import { Card, Row, Col, Button, Container, Table } from "react-bootstrap";
+import { Card, Row, Col, Button, Container, Table, Spinner, Alert } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
+import { useGetAccessLogById, useGetLogsByUser } from "../api/hooks/useAccessLogs";
+import { formatSecondsToHHMMSS, getDateAndDayFromTimestamp } from "../utils/formatDate";
 
-export function AccessLogDetail({ onClose }) {
-  const { zoneId } = useParams();
+export function AccessLogDetail() {
+  const { id } = useParams(); // id del log desde la URL
   const navigate = useNavigate();
 
-  // Datos temporales
-  const accessLog = {
-    id: "123456",
-    user: {
-      name: "Eduardo Aguilar",
-    },
-    zone: {
-      name: "Zona 7 - Principal",
-    },
-    timestamp: "2025-07-18T10:30:00Z",
-    verificationType: "Huella dactilar",
-    result: "Acceso concedido",
-    deviceName: "Dispositivo A-23",
-    deviceIp: "192.168.0.101",
-    description: "Usuario autorizado por biometría. Acceso normal.",
+  const { data: accessLog, isLoading, isError } = useGetAccessLogById(id);
+
+  // Cargar accesos del mismo usuario si existe userId
+  const userId = accessLog?.user?.id;
+  const { data: userAccesses } = useGetLogsByUser(userId);
+
+  if (isLoading) {
+    return (
+      <div className="g-background d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="light" />
+      </div>
+    );
+  }
+
+  if (isError || !accessLog) {
+    return (
+      <div className="g-background d-flex justify-content-center align-items-center vh-100">
+        <Alert variant="danger">Error al cargar el registro de acceso.</Alert>
+      </div>
+    );
+  }
+
+  // Función para formatear fechas
+  const formatDate = (dateStr) =>
+    dateStr ? new Date(dateStr).toLocaleString("es-PE") : "—";
+
+  // Duración (en formato hh:mm:ss)
+  const getDuration = (entry, exit) => {
+    if (!entry || !exit) return "—";
+    const diff = (new Date(exit) - new Date(entry)) / 1000;
+    const h = String(Math.floor(diff / 3600)).padStart(2, "0");
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
+    const s = String(Math.floor(diff % 60)).padStart(2, "0");
+    return `${h}:${m}:${s}`;
   };
 
-  // Accesos del mismo usuario a esta zona (ejemplo)
-  const userAccesses = [
-    {
-      id: "123456",
-      timestamp: "2025-07-18T10:30:00Z",
-      verificationType: "Huella dactilar",
-      result: "Acceso concedido",
-      deviceName: "Dispositivo A-23",
-    },
-    {
-      id: "123457",
-      timestamp: "2025-07-17T09:10:00Z",
-      verificationType: "Reconocimiento facial",
-      result: "Acceso concedido",
-      deviceName: "Dispositivo B-15",
-    },
-    {
-      id: "123458",
-      timestamp: "2025-07-15T14:45:00Z",
-      verificationType: "Huella dactilar",
-      result: "Acceso denegado",
-      deviceName: "Dispositivo A-23",
-    },
-  ];
-
   return (
-    <div className="g-background">
+    <div className="g-background min-vh-100">
       <CustomNavbar />
 
       <Container className="mt-4">
         <Row className="mb-3">
           <Col>
-            <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={() => navigate(-1)}
+            >
               <FaArrowLeft className="me-2" />
               Atrás
             </Button>
           </Col>
         </Row>
 
+        {/* --- Card principal --- */}
         <Card bg="dark" text="light" className="shadow-lg mb-4">
           <Card.Header className="text-center fs-4">Detalle del Acceso</Card.Header>
           <Card.Body>
             <Row className="mb-3">
               <Col md={6}>
-                <strong>Nombre del usuario:</strong> {accessLog.user?.name || "—"}
+                <strong>ID:</strong> {accessLog.id}
               </Col>
               <Col md={6}>
-                <strong>Zona:</strong> {accessLog.zone?.name || "—"}
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col md={6}>
-                <strong>ID del acceso:</strong> {accessLog.id}
-              </Col>
-              <Col md={6}>
-                <strong>Fecha:</strong> {new Date(accessLog.timestamp).toLocaleString()}
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col md={6}>
-                <strong>Tipo de verificación:</strong> {accessLog.verificationType || "—"}
-              </Col>
-              <Col md={6}>
-                <strong>Resultado:</strong> {accessLog.result || "—"}
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col md={6}>
-                <strong>Dispositivo:</strong> {accessLog.deviceName || "—"}
-              </Col>
-              <Col md={6}>
-                <strong>IP del dispositivo:</strong> {accessLog.deviceIp || "—"}
+                <strong>Usuario:</strong> {accessLog.user?.name || "—"}
               </Col>
             </Row>
 
-            {accessLog.description && (
-              <Row className="mb-3">
-                <Col>
-                  <strong>Descripción:</strong> {accessLog.description}
-                </Col>
-              </Row>
-            )}
+            <Row className="mb-3">
+              <Col md={6}>
+                <strong>Dispositivo:</strong> {accessLog.device?.name || "—"}
+              </Col>
+              <Col md={6}>
+                <strong>Empresa:</strong> {accessLog.company?.name || "—"}
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={6}>
+                <strong>Evento:</strong> {accessLog.eventType?.name || "—"}
+              </Col>
+              <Col md={6}>
+                <strong>Acción:</strong> {accessLog.action || "—"}
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={6}>
+                <strong>Entrada:</strong> {getDateAndDayFromTimestamp(accessLog.entryTime)}
+              </Col>
+              <Col md={6}>
+                <strong>Salida:</strong> {getDateAndDayFromTimestamp(accessLog.exitTime)}
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={6}>
+                <strong>Duración:</strong> {formatSecondsToHHMMSS(accessLog.durationSeconds)}
+              </Col>
+              <Col md={6}>
+                <strong>EPP Correcto:</strong>{" "}
+                {accessLog.correctEpp ? "Sí" : "No"}
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={6}>
+                <strong>Éxito:</strong>{" "}
+                {accessLog.success ? "✔" : "✖"}
+              </Col>
+              <Col md={6}>
+                <strong>Observación:</strong>{" "}
+                {accessLog.observation || "—"}
+              </Col>
+            </Row>
           </Card.Body>
         </Card>
 
-        <Card bg="dark" text="light" className="shadow-lg">
-          <Card.Header className="text-center fs-5">Otros accesos de este usuario a esta zona</Card.Header>
-          <Card.Body>
-            <Table striped bordered hover variant="dark" responsive>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Fecha</th>
-                  <th>Tipo de verificación</th>
-                  <th>Resultado</th>
-                  <th>Dispositivo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {userAccesses.map((entry) => (
-                  <tr key={entry.id}>
-                    <td>{entry.id}</td>
-                    <td>{new Date(entry.timestamp).toLocaleString()}</td>
-                    <td>{entry.verificationType}</td>
-                    <td>{entry.result}</td>
-                    <td>{entry.deviceName}</td>
+        {/* --- Tabla de otros accesos --- */}
+        {userAccesses?.length > 0 && (
+          <Card bg="dark" text="light" className="shadow-lg">
+            <Card.Header className="text-center fs-5">
+              Otros accesos de este usuario
+            </Card.Header>
+            <Card.Body>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Fecha Entrada</th>
+                    <th>Fecha Salida</th>
+                    <th>Duración</th>
+                    <th>Evento</th>
+                    <th>Acción</th>
+                    <th>Dispositivo</th>
+                    <th>Resultado</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card.Body>
-        </Card>
+                </thead>
+                <tbody>
+                  {userAccesses.map((entry) => (
+                    <tr key={entry.id}>
+                      <td>{entry.id}</td>
+                      <td>{entry.entryTime ? getDateAndDayFromTimestamp(entry.entryTime) : "—"}</td>
+                      <td>{entry.exitTime ? getDateAndDayFromTimestamp(entry.exitTime) : "—"}</td>
+                      <td>{entry.durationSeconds ? formatSecondsToHHMMSS(entry.durationSeconds) : "—"}</td>
+                      <td>{entry.eventType?.name || "—"}</td>
+                      <td>{entry.action || "—"}</td>
+                      <td>{entry.device?.name || "—"}</td>
+                      <td>{entry.success ? "✔" : "✖"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        )}
       </Container>
     </div>
   );

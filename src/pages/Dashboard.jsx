@@ -1,61 +1,51 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { ZoneCard } from "../components/ZoneCard/ZoneCard";
 import "./Dashboard.css";
 import { Container, Spinner } from "react-bootstrap";
 import * as deviceService from "../api/services/deviceService";
-import { countLogsByDeviceAndDay } from "../api/services/accessLogsService"; // función directa sin hooks
+import { useGetLatestLogsByDeviceToday } from "../api/hooks/useAccessLogs";
+import { getEntryExitTimeString } from "../utils/formatDate";
 
 export function Dashboard() {
   const navigate = useNavigate();
   const company = 1;
-  const today = new Date().toISOString().split("T")[0];
 
   const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDevicesAndCounts = async () => {
+    const fetchDevices = async () => {
       try {
         const allDevices = await deviceService.listByCompany(company);
-
-        // Obtenemos los conteos en paralelo
-        const zonesWithCounts = await Promise.all(
-          allDevices.map(async (d) => {
-            const count = await countLogsByDeviceAndDay(d.id, today);
-            return {
-              id: d.id,
-              name: d.name,
-              device: d,
-              recentCount: count,
-              accesses: new Array(count).fill().map((_, i) => ({
-                id: i + 1,
-                user: `Usuario ${i + 1}`,
-                time: "Hoy",
-              })),
-            };
-          })
-        );
-
-        setZones(zonesWithCounts);
+        // inicializamos recentCount en 0
+        const initialized = allDevices.map((z) => ({ ...z, recentCount: 0 }));
+        setZones(initialized);
       } catch (error) {
-        console.error("Error fetching devices or counts:", error);
+        console.error("Error fetching devices:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDevicesAndCounts();
-  }, [company, today]);
+    fetchDevices();
+  }, [company]);
 
-  const chartData = zones.map((z) => ({
-    name: z.name,
-    ingresos: z.recentCount,
-  }));
-
-  const threshold = 3;
+  const handleUpdateCount = (zoneId, count) => {
+    setZones((prev) =>
+      prev.map((z) => (z.id === zoneId ? { ...z, recentCount: count } : z))
+    );
+  };
 
   if (loading) {
     return (
@@ -65,27 +55,33 @@ export function Dashboard() {
     );
   }
 
+  const threshold = 3;
+
   return (
     <div className="g-background">
       <CustomNavbar />
+
       <div className="container-items">
-        {zones.map((z) => (
-          <ZoneCard
-            key={z.id}
-            zoneId={z.id}
-            zoneName={z.name}
-            recentAccesses={z.recentCount}
-            accessList={z.accesses}
-            device={z.device}
+        {zones.map((zone) => (
+          <ZoneCardWrapper
+            key={zone.id}
+            zone={zone}
+            onUpdateCount={handleUpdateCount}
           />
         ))}
       </div>
 
+      {/* --- Gráfico resumen --- */}
       <Container className="mt-4">
-        <h2 className="text-white text-center mb-4">Resumen de ingresos por dispositivo</h2>
+        <h2 className="text-white text-center mb-4">
+          Resumen de ingresos por dispositivo
+        </h2>
         <ResponsiveContainer width="100%" height={450}>
           <LineChart
-            data={chartData}
+            data={zones.map((z) => ({
+              name: z.name,
+              ingresos: z.recentCount || 0,
+            }))}
             margin={{ top: 40, right: 100, bottom: 80, left: 100 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -139,5 +135,36 @@ export function Dashboard() {
         </ResponsiveContainer>
       </Container>
     </div>
+  );
+}
+
+/* ---- Subcomponente para cada tarjeta ---- */
+function ZoneCardWrapper({ zone, onUpdateCount }) {
+  const { data: latestLogs, isLoading } = useGetLatestLogsByDeviceToday(zone.id);
+
+  const accessList =
+    latestLogs?.map((log) => ({
+      id: log.id,
+      user: log.user?.name || "Usuario desconocido",
+      time: getEntryExitTimeString(log.entryTime, log.exitTime),
+    })) || [];
+
+  // cuando se carguen los logs, actualiza el conteo en el padre
+  useEffect(() => {
+    if (!isLoading) {
+      onUpdateCount(zone.id, accessList.length);
+    }
+  }, [isLoading, accessList.length]);
+
+  return (
+    <ZoneCard
+      key={zone.id}
+      zoneId={zone.id}
+      zoneName={zone.name}
+      recentAccesses={accessList.length}
+      accessList={accessList}
+      device={zone}
+      loading={isLoading}
+    />
   );
 }

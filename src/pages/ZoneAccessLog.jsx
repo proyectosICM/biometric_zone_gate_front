@@ -8,9 +8,10 @@ import {
   useGetLogsByDevicePaginated,
   useUpdateObservation,
 } from "../api/hooks/useAccessLogs.jsx";
- 
+import { formatDateTime, formatSecondsToHHMMSS, getDateAndDayFromTimestamp, getDateFromTimestamp } from "../utils/formatDate.jsx";
+
 export function ZoneAccessLog() {
-  const { deviceId } = useParams();
+  const { deviceId } = useParams(); 
   const navigate = useNavigate();
 
   // Estados del modal
@@ -35,7 +36,10 @@ export function ZoneAccessLog() {
   const direction = "desc";
 
   // Datos del backend
-  const { data, isLoading, isError } = useGetLogsByDevicePaginated(deviceId, page, size);
+  const { data, isLoading, isError } = useGetLogsByDevicePaginated(deviceId, page, size, {
+    sortBy: "createdAt",
+    direction: "desc",
+  });
   const accessLogs = data?.content || [];
   const totalPages = data?.totalPages || 1;
   const isLast = page >= totalPages - 1;
@@ -174,9 +178,9 @@ export function ZoneAccessLog() {
                     <td>{log.company?.name || "—"}</td>
                     <td>{log.eventType?.name || "—"}</td>
                     <td>{log.action}</td>
-                    <td>{log.entryTime ? new Date(log.entryTime).toLocaleString() : "—"}</td>
-                    <td>{log.exitTime ? new Date(log.exitTime).toLocaleString() : "—"}</td>
-                    <td>{log.durationSeconds ?? "—"}</td>
+                    <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
+                    <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
+                    <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>
                     <td className={log.correctEpp ? "text-success" : "text-danger"}>
                       {log.correctEpp ? "Sí" : "No"}
                     </td>
