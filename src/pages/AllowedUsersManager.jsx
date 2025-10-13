@@ -28,7 +28,7 @@ export function AllowedUsersManager() {
   const companyId = localStorage.getItem("bzg_companyId");
   const navigate = useNavigate();
 
-  // ---------- HOOKS ----------
+  // ---------- HOOKS ---------- 
   const { data: allUsers = [], isLoading: loadingUsers } =
     useGetUsersByCompanyId(companyId);
   const { data: allDevices = [], isLoading: loadingDevices } =
@@ -94,8 +94,8 @@ export function AllowedUsersManager() {
     if (!selectedUserId) return;
 
     const payload = {
-      user: { id: Number(selectedUserId) },
-      device: { id: Number(id) },
+      userId: Number(selectedUserId),
+      deviceId: Number(id),
       weekZone: Number(weekZone),
       groupNumber: Number(groupNumber),
       startTime: new Date(startTime).toISOString(),
@@ -181,8 +181,8 @@ export function AllowedUsersManager() {
                   {allowedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>{user.id}</td>
-                      <td>{user.user.name}</td>
-                      <td>{user.user.role}</td>
+                      <td>{user.userName}</td>
+                      <td>{user.groupNumber}</td>
                       <td>{user.authMode}</td>
                       <td>
                         <Button
