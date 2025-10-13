@@ -1,40 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, Button, Container, Row, Col, Table, Modal, Form } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  Container,
+  Row,
+  Col,
+  Table,
+  Modal,
+  Form,
+  Spinner,
+} from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { FaArrowLeft, FaPlus, FaTrashAlt } from "react-icons/fa";
 import Swal from "sweetalert2";
 
+import { useGetUsersByCompanyId } from "../api/hooks/useUser";
+import { useListByCompany } from "../api/hooks/useDevice";
+import {
+  useGetByDeviceId,
+  useCreateDeviceUserAccess,
+  useDeleteDeviceUserAccess,
+} from "../api/hooks/useDeviceUserAccess";
+
 export function AllowedUsersManager() {
-  const { id } = useParams(); // zonaId
+  const { id } = useParams(); // ID del dispositivo
+  const companyId = localStorage.getItem("bzg_companyId");
   const navigate = useNavigate();
 
-  const allowedUsers = [
-    { id: 1, name: "Carlos R.", role: "Empleado", authMode: "Huella" },
-    { id: 2, name: "Lucía V.", role: "Supervisor", authMode: "Facial" },
-    { id: 3, name: "Marcos T.", role: "Seguridad", authMode: "Tarjeta" },
-  ];
+  // ---------- HOOKS ----------
+  const { data: allUsers = [], isLoading: loadingUsers } =
+    useGetUsersByCompanyId(companyId);
+  const { data: allDevices = [], isLoading: loadingDevices } =
+    useListByCompany(companyId);
+  const { data: allowedUsers = [], isLoading: loadingAllowed } =
+    useGetByDeviceId(id);
 
-  const allUsers = [
-    { id: 101, name: "Ana Gómez" },
-    { id: 102, name: "Pedro López" },
-    { id: 103, name: "Valeria Méndez" },
-  ];
+  const createAccessMutation = useCreateDeviceUserAccess();
+  const deleteAccessMutation = useDeleteDeviceUserAccess();
 
+  // ---------- ESTADO ----------
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedAuthMode, setSelectedAuthMode] = useState("Huella");
+  const [weekZone, setWeekZone] = useState(1);
+  const [groupNumber, setGroupNumber] = useState(1);
+  const [startTime, setStartTime] = useState(
+    new Date().toISOString().slice(0, 16)
+  );
+  const [endTime, setEndTime] = useState(
+    new Date(new Date().setMonth(new Date().getMonth() + 1))
+      .toISOString()
+      .slice(0, 16)
+  );
+  const [enabled, setEnabled] = useState(true);
 
-  const handleDelete = (userId) => {
-    const user = allowedUsers.find((u) => u.id === userId);
+  // ---------- FUNCIONES ----------
+  const handleDelete = (accessId) => {
+    const user = allowedUsers.find((u) => u.id === accessId);
 
     Swal.fire({
       title: `¿Eliminar permiso?`,
-      text: `Se revocará el acceso de ${user.name} a esta zona.`,
+      text: `Se revocará el acceso de ${user.user.name} a este dispositivo.`,
       icon: "warning",
-      background: "#212529", // fondo oscuro
+      background: "#212529",
       color: "#fff",
-      iconColor: "#ffc107", // amarillo como advertencia
+      iconColor: "#ffc107",
       showCancelButton: true,
       confirmButtonColor: "#6c757d",
       cancelButtonColor: "#6c757d",
@@ -42,15 +72,17 @@ export function AllowedUsersManager() {
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        console.log("Eliminar permiso de usuario ID:", userId);
-        // Aquí va la llamada a la API real
-        Swal.fire({
-          title: "Eliminado",
-          text: "El permiso fue eliminado correctamente.",
-          icon: "success",
-          background: "#212529",
-          color: "#fff",
-          confirmButtonColor: "#198754", // verde Bootstrap
+        deleteAccessMutation.mutate(user.id, {
+          onSuccess: () => {
+            Swal.fire({
+              title: "Eliminado",
+              text: "El permiso fue eliminado correctamente.",
+              icon: "success",
+              background: "#212529",
+              color: "#fff",
+              confirmButtonColor: "#198754",
+            });
+          },
         });
       }
     });
@@ -59,22 +91,50 @@ export function AllowedUsersManager() {
   const handleAddUser = () => setShowModal(true);
 
   const handleConfirmAdd = () => {
-    console.log("Asignar usuario:", selectedUserId, "con", selectedAuthMode, "en zona", id);
-    // Llamar a API para asignar usuario
-    setShowModal(false);
+    if (!selectedUserId) return;
 
-    Swal.fire({
-      title: "Usuario asignado",
-      text: "El usuario fue agregado correctamente a la zona.",
-      icon: "success",
-      background: "#212529",
-      color: "#fff",
-      confirmButtonColor: "#198754", // verde Bootstrap
+    const payload = {
+      user: { id: Number(selectedUserId) },
+      device: { id: Number(id) },
+      weekZone: Number(weekZone),
+      groupNumber: Number(groupNumber),
+      startTime: new Date(startTime).toISOString(),
+      endTime: new Date(endTime).toISOString(),
+      enabled,
+    };
+
+    createAccessMutation.mutate(payload, {
+      onSuccess: () => {
+        Swal.fire({
+          title: "Usuario asignado",
+          text: "El usuario fue agregado correctamente al dispositivo.",
+          icon: "success",
+          background: "#212529",
+          color: "#fff",
+          confirmButtonColor: "#198754",
+        });
+        setShowModal(false);
+        setSelectedUserId("");
+        setWeekZone(1);
+        setGroupNumber(1);
+        setStartTime(new Date().toISOString().slice(0, 16));
+        setEndTime(
+          new Date(new Date().setMonth(new Date().getMonth() + 1))
+            .toISOString()
+            .slice(0, 16)
+        );
+        setEnabled(true);
+      },
     });
-
-    setSelectedUserId("");
-    setSelectedAuthMode("Huella");
   };
+
+  if (loadingUsers || loadingDevices || loadingAllowed) {
+    return (
+      <div className="g-background d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="light" />
+      </div>
+    );
+  }
 
   return (
     <div className="g-background min-vh-100">
@@ -83,7 +143,11 @@ export function AllowedUsersManager() {
       <Container className="mt-4">
         <Row className="mb-3">
           <Col>
-            <Button variant="outline-light" className="w-100" onClick={() => navigate(-1)}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={() => navigate(-1)}
+            >
               <FaArrowLeft className="me-2" />
               Atrás
             </Button>
@@ -91,7 +155,9 @@ export function AllowedUsersManager() {
         </Row>
 
         <Card bg="dark" text="light" className="shadow-lg">
-          <Card.Header className="text-center fs-4">Usuarios Permitidos - Zona {id}</Card.Header>
+          <Card.Header className="text-center fs-4">
+            Usuarios Permitidos - Dispositivo {id}
+          </Card.Header>
           <Card.Body>
             <div className="d-flex justify-content-end mb-3">
               <Button variant="light" onClick={handleAddUser}>
@@ -115,17 +181,28 @@ export function AllowedUsersManager() {
                   {allowedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>{user.id}</td>
-                      <td>{user.name}</td>
-                      <td>{user.role}</td>
+                      <td>{user.user.name}</td>
+                      <td>{user.user.role}</td>
                       <td>{user.authMode}</td>
                       <td>
-                        <Button variant="secondary" size="sm" onClick={() => handleDelete(user.id)}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleDelete(user.id)}
+                        >
                           <FaTrashAlt className="me-1" />
                           Eliminar permiso
                         </Button>
                       </td>
                     </tr>
                   ))}
+                  {allowedUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center text-muted">
+                        No hay usuarios asignados
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </Table>
             </div>
@@ -136,29 +213,71 @@ export function AllowedUsersManager() {
       {/* MODAL: Agregar usuario */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton className="bg-dark text-light">
-          <Modal.Title>Asignar Usuario a Zona {id}</Modal.Title>
+          <Modal.Title>Asignar Usuario al Dispositivo {id}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Seleccionar usuario</Form.Label>
-              <Form.Select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
+              <Form.Select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+              >
                 <option value="">-- Selecciona un usuario --</option>
                 {allUsers.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.name}
+                    {user.name} ({user.role})
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Modo de autenticación</Form.Label>
-              <Form.Select value={selectedAuthMode} onChange={(e) => setSelectedAuthMode(e.target.value)}>
-                <option value="Huella">Huella</option>
-                <option value="Facial">Facial</option>
-                <option value="Tarjeta">Tarjeta</option>
-              </Form.Select>
+              <Form.Label>Week Zone</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                max={7}
+                value={weekZone}
+                onChange={(e) => setWeekZone(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Group Number</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                value={groupNumber}
+                onChange={(e) => setGroupNumber(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Start Time</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>End Time</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Habilitado"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -166,7 +285,11 @@ export function AllowedUsersManager() {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancelar
           </Button>
-          <Button variant="light" onClick={handleConfirmAdd} disabled={!selectedUserId}>
+          <Button
+            variant="light"
+            onClick={handleConfirmAdd}
+            disabled={!selectedUserId}
+          >
             Asignar
           </Button>
         </Modal.Footer>

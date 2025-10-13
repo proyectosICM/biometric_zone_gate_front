@@ -9,7 +9,11 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 260px; /* Establece una altura fija o mínima */
+  height: 260px; /* altura fija */
+  
+  min-width: 460px; /* ancho mínimo */
+  max-width: 320px; /* ancho máximo opcional */
+  flex: 0 0 auto; /* evita que se encoja demasiado en flex container */
 }
 
 .zone-card:hover {
@@ -20,13 +24,13 @@
 .zone-card h2 {
   font-size: 1.4rem;
   margin-bottom: 8px;
-  color: #ffff;
+  color: #fff;
 }
 
 .zone-card p {
   font-size: 0.95rem;
   margin-bottom: 12px;
-  color: #ffff;
+  color: #fff;
 }
 
 .zone-card ul {
@@ -42,7 +46,7 @@
   font-size: 0.9rem;
   padding: 6px 0;
   border-bottom: 1px solid #eee;
-  color: #ffff;
+  color: #fff;
 }
 
 .zone-card li:last-child {

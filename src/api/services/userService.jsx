@@ -1,9 +1,6 @@
-import api from "../axiosConfig";
+import api, { AUTH_API } from "../axiosConfig";
 
 const endpoint = "/users";
-
-const AUTH_API = "http://telemetriaperu.com:7071";
-
 
 export const login = async ({ username, password }) => {
   const response = await api.post(`${AUTH_API}/login`, { username, password });

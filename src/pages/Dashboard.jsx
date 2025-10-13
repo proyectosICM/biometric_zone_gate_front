@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart,
@@ -12,11 +12,11 @@ import {
 import { CustomNavbar } from "../components/CustomNavbar";
 import { ZoneCard } from "../components/ZoneCard/ZoneCard";
 import "./Dashboard.css";
-import { Container, Spinner } from "react-bootstrap";
+import { Container, Spinner, Button } from "react-bootstrap";
 import * as deviceService from "../api/services/deviceService";
 import { useGetLatestLogsByDeviceToday } from "../api/hooks/useAccessLogs";
 import { getEntryExitTimeString } from "../utils/formatDate";
-import { FaChartLine } from "react-icons/fa";
+import { FaChartLine, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -25,11 +25,12 @@ export function Dashboard() {
   const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const scrollRef = useRef(null);
+
   useEffect(() => {
     const fetchDevices = async () => {
       try {
         const allDevices = await deviceService.listByCompany(company);
-        // inicializamos recentCount en 0
         const initialized = allDevices.map((z) => ({ ...z, recentCount: 0 }));
         setZones(initialized);
       } catch (error) {
@@ -58,24 +59,53 @@ export function Dashboard() {
 
   const threshold = 3;
 
+  const scrollLeft = () => {
+    scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
+  };
+
+  const scrollRight = () => {
+    scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
+  };
+
   return (
     <div className="g-background">
       <CustomNavbar />
 
-      <div className="container-items">
-        {zones.map((zone) => (
-          <ZoneCardWrapper
-            key={zone.id}
-            zone={zone}
-            onUpdateCount={handleUpdateCount}
-          />
-        ))}
+      <div className="device-scroll-wrapper">
+        <Button
+          variant="outline-light"
+          className="scroll-btn left"
+          onClick={scrollLeft}
+        >
+          <FaChevronLeft />
+        </Button>
+
+        <div className="container-items-horizontal" ref={scrollRef}>
+          {zones.map((zone) => (
+            <ZoneCardWrapper
+              key={zone.id}
+              zone={zone}
+              onUpdateCount={handleUpdateCount}
+            />
+          ))}
+        </div>
+
+        <Button
+          variant="outline-light"
+          className="scroll-btn right"
+          onClick={scrollRight}
+        >
+          <FaChevronRight />
+        </Button>
       </div>
 
       {/* --- Gráfico resumen --- */}
       <Container className="mt-4">
         <h2 className="text-white text-center mb-4">
-          <FaChartLine className="me-2 text-success" style={{ fontSize: "1.4rem" }} />
+          <FaChartLine
+            className="me-2 text-success"
+            style={{ fontSize: "1.4rem" }}
+          />
           Resumen de ingresos por dispositivo
         </h2>
         <ResponsiveContainer width="100%" height={450}>
@@ -151,7 +181,6 @@ function ZoneCardWrapper({ zone, onUpdateCount }) {
       time: getEntryExitTimeString(log.entryTime, log.exitTime),
     })) || [];
 
-  // cuando se carguen los logs, actualiza el conteo en el padre
   useEffect(() => {
     if (!isLoading) {
       onUpdateCount(zone.id, accessList.length);

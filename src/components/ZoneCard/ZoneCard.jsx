@@ -20,7 +20,7 @@ export function ZoneCard({ zoneId, zoneName, recentAccesses, accessList }) {
             {a.user} – {a.time}
           </li>
         ))}
-      </ul>
+      </ul> 
     </div>
   );
 }

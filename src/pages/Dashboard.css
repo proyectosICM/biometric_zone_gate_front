@@ -1,15 +1,44 @@
-.container-items {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-    padding: 16px;
-    max-width: 1200px;
-    margin: 0 auto;
+.device-scroll-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 16px 0; /* margen superior e inferior */
+  padding: 0 40px; /* padding horizontal para separar de los bordes */
+}
 
-    max-height: 600px;
-    /* altura máxima visible */
-    overflow-y: auto;
-    /* activa el scroll si se excede */
-    /* border: 2px solid red;  */
+.container-items-horizontal {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 16px; /* padding interno */
+  scroll-behavior: smooth;
+}
+
+.container-items-horizontal::-webkit-scrollbar {
+  height: 10px;
+}
+
+.container-items-horizontal::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scroll-btn.left {
+  left: 0; /* ahora dentro del padding */
+}
+
+.scroll-btn.right {
+  right: 0; /* ahora dentro del padding */
 }
