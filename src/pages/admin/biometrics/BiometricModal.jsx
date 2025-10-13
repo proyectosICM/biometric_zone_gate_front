@@ -1,4 +1,5 @@
-import { Form, Modal } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
 
 export function BiometricModal({ show, onHide, biometric, onSave, role, companies }) {
     const [formData, setFormData] = useState({
