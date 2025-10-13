@@ -1,3 +1,5 @@
+import { Button, Table } from "react-bootstrap";
+
 export function BiometricTable({ biometrics, onEdit, onDelete }) {
     return (
         <div className="table-responsive">
