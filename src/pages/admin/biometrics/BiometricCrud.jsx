@@ -56,21 +56,10 @@ export function BiometricCrud() {
 
   const handleSave = async (deviceData) => {
     try {
-      if (!deviceData.name || !deviceData.host) {
-        Swal.fire({
-          title: "Error",
-          text: "Nombre del dispositivo y host son obligatorios",
-          icon: "error",
-          background: "#212529",
-          color: "#fff",
-          confirmButtonColor: "#d33",
-        });
-        return;
-      }
-
       const payload = {
-        ...deviceData,
-        company: role === "SA" ? { id: deviceData.companyId } : { id: company },
+        sn: deviceData.sn,
+        name: deviceData.name,
+        company: { id: deviceData.companyId },
       };
 
       if (deviceData.id) {
@@ -108,6 +97,7 @@ export function BiometricCrud() {
       });
     }
   };
+
 
   const handleDelete = (id) => {
     Swal.fire({
