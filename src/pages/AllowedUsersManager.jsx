@@ -58,6 +58,8 @@ export function AllowedUsersManager() {
   const handleDelete = (accessId) => {
     const user = allowedUsers.find((u) => u.id === accessId);
 
+    const selectedAccess = allowedUsers.find((u) => u.id === accessId);
+    
     Swal.fire({
       title: `¿Eliminar permiso?`,
       text: `Se revocará el acceso de ${selectedAccess.userName || "usuario desconocido"} a este dispositivo.`,
