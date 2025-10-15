@@ -60,7 +60,7 @@ export function AllowedUsersManager() {
 
     Swal.fire({
       title: `¿Eliminar permiso?`,
-      text: `Se revocará el acceso de ${user.user.name} a este dispositivo.`,
+      text: `Se revocará el acceso de ${selectedAccess.userName || "usuario desconocido"} a este dispositivo.`,
       icon: "warning",
       background: "#212529",
       color: "#fff",
