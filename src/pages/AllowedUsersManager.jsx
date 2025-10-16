@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Card,
@@ -12,7 +12,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
-import { FaArrowLeft, FaPlus, FaTrashAlt, FaBroom } from "react-icons/fa"; // 🆕 FaBroom para limpiar todo
+import { FaArrowLeft, FaPlus, FaTrashAlt, FaBroom } from "react-icons/fa";
 import Swal from "sweetalert2";
 
 import { useGetUsersByCompanyId } from "../api/hooks/useUser";
@@ -21,11 +21,11 @@ import {
   useGetByDeviceId,
   useCreateDeviceUserAccess,
   useDeleteDeviceUserAccess,
-  useCleanDeviceUsersBySn, // 🆕 importar hook de limpieza total
+  useCleanDeviceUsersBySn,
 } from "../api/hooks/useDeviceUserAccess";
 
 export function AllowedUsersManager() {
-  const { id } = useParams(); // ID del dispositivo
+  const { id } = useParams();
   const companyId = localStorage.getItem("bzg_companyId");
   const navigate = useNavigate();
 
@@ -39,7 +39,7 @@ export function AllowedUsersManager() {
 
   const createAccessMutation = useCreateDeviceUserAccess();
   const deleteAccessMutation = useDeleteDeviceUserAccess();
-  const cleanAllMutation = useCleanDeviceUsersBySn(); // 🆕 hook de limpieza total
+  const cleanAllMutation = useCleanDeviceUsersBySn();
 
   // ---------- ESTADO ----------
   const [showModal, setShowModal] = useState(false);
@@ -61,8 +61,10 @@ export function AllowedUsersManager() {
     const selectedAccess = allowedUsers.find((u) => u.id === accessId);
 
     Swal.fire({
-      title: `¿Eliminar permiso?`,
-      text: `Se revocará el acceso de ${selectedAccess.userName || "usuario desconocido"} a este dispositivo.`,
+      title: "¿Eliminar permiso?",
+      text: `Se revocará el acceso de ${
+        selectedAccess.userName || "usuario desconocido"
+      } a este dispositivo.`,
       icon: "warning",
       background: "#212529",
       color: "#fff",
@@ -90,7 +92,6 @@ export function AllowedUsersManager() {
     });
   };
 
-  // 🆕 Función para eliminar TODOS los usuarios del dispositivo
   const handleCleanAll = () => {
     if (!allowedUsers.length) {
       Swal.fire({
@@ -134,7 +135,8 @@ export function AllowedUsersManager() {
           onError: (error) => {
             Swal.fire({
               title: "Error",
-              text: error.message || "Ocurrió un error al limpiar el dispositivo.",
+              text:
+                error.message || "Ocurrió un error al limpiar el dispositivo.",
               icon: "error",
               background: "#212529",
               color: "#fff",
@@ -194,6 +196,7 @@ export function AllowedUsersManager() {
     );
   }
 
+  // ---------- RENDER ----------
   return (
     <div className="g-background min-vh-100">
       <CustomNavbar />
@@ -223,7 +226,6 @@ export function AllowedUsersManager() {
                 Agregar usuario
               </Button>
 
-              {/* 🆕 Botón para limpiar todos los permisos */}
               <Button
                 variant="danger"
                 onClick={handleCleanAll}
@@ -291,6 +293,86 @@ export function AllowedUsersManager() {
           </Card.Body>
         </Card>
       </Container>
+
+      {/* 🧩 MODAL: Agregar usuario */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className="bg-dark text-light">
+          <Modal.Title>Asignar Usuario al Dispositivo {id}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="bg-dark text-light">
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Seleccionar usuario</Form.Label>
+              <Form.Select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+              >
+                <option value="">-- Selecciona un usuario --</option>
+                {allUsers.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.role})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Week Zone</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                max={7}
+                value={weekZone}
+                onChange={(e) => setWeekZone(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Group Number</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                value={groupNumber}
+                onChange={(e) => setGroupNumber(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Start Time</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>End Time</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Habilitado"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer className="bg-dark text-light">
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="light"
+            onClick={handleConfirmAdd}
+            disabled={!selectedUserId}
+          >
+            Asignar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
