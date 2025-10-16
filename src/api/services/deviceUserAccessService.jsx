@@ -207,3 +207,13 @@ export const getByUserAndDeviceEnabled = async (userId, deviceId) => {
     throw error;
   }
 };
+
+export const cleanDeviceUsersBySn = async (sn) => {
+  try {
+    const response = await api.delete(`${endpoint}/${sn}/clean-users`);
+    return response.data; // normalmente el mensaje: "Comando CLEAN USER enviado..."
+  } catch (error) {
+    console.error(`Error limpiando usuarios del dispositivo ${sn}:`, error);
+    throw error;
+  }
+};

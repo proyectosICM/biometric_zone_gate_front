@@ -202,3 +202,28 @@ export const useDeleteDeviceUserAccess = () => {
     },
   });
 };
+
+export const useCleanDeviceUsersBySn = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sn) => deviceUserAccessService.cleanDeviceUsersBySn(sn),
+
+    onSuccess: (message) => {
+      console.log("✅ Limpieza completada:", message);
+
+      // Invalidamos datos en caché relacionados
+      queryClient.invalidateQueries(["deviceUserAccess"]);
+      queryClient.invalidateQueries(["deviceUserAccessByDevice"]);
+    },
+
+    onError: (error) => {
+      console.error("❌ Error limpiando usuarios del dispositivo:", error);
+    },
+
+    onSettled: () => {
+      // Podrías usarlo para resetear loaders o cerrar modales
+      console.log("🧩 Operación de limpieza finalizada (success o fail).");
+    },
+  });
+};
