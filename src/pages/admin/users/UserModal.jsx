@@ -11,6 +11,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         password: "",
         adminLevel: 0,
         enabled: true,
+        isWebUser: false,
         companyId: role === "SA" ? "" : 1,
     });
 
@@ -29,6 +30,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 password: "",
                 adminLevel: user.adminLevel ?? 0,
                 enabled: user.enabled ?? true,
+                isWebUser: !!user.username, // si tiene username, es usuario web
                 companyId: user.company?.id || (role === "SA" ? "" : 1),
             });
 
@@ -47,6 +49,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 password: "",
                 adminLevel: 0,
                 enabled: true,
+                isWebUser: false,
                 companyId: role === "SA" ? "" : 1,
             });
             setCredentials([{ type: "PASSWORD", backupNum: 10, record: "" }]);
@@ -72,7 +75,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     ? 10
                     : value === "CARD"
                     ? 11
-                    : 12; // para huella u otros
+                    : 12; // fingerprint u otros
         }
 
         setCredentials(updated);
@@ -91,12 +94,19 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.email || !formData.username) return;
+        if (!formData.name || !formData.email) return;
         if (role === "SA" && !formData.companyId) return;
 
+        // Si no es usuario web, limpiamos username y password
+        const finalForm = { ...formData };
+        if (!formData.isWebUser) {
+            finalForm.username = null;
+            finalForm.password = null;
+        }
+
         const finalData = {
-            ...formData,
-            company: { id: Number(formData.companyId) },
+            ...finalForm,
+            company: { id: Number(finalForm.companyId) },
             credentials: credentials,
         };
 
@@ -137,31 +147,47 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Usuario</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="username"
-                            className="bg-secondary text-light border-0"
-                            value={formData.username}
+                    {/* === Toggle Usuario Web === */}
+                    <Form.Group className="mb-3" controlId="isWebUserSwitch">
+                        <Form.Check
+                            type="switch"
+                            name="isWebUser"
+                            label="Usuario Web"
+                            checked={formData.isWebUser}
                             onChange={handleChange}
-                            required
                         />
                     </Form.Group>
 
-                    {!formData.id && (
-                        <Form.Group className="mb-3">
-                            <Form.Label>Contraseña</Form.Label>
-                            <Form.Control
-                                type="password"
-                                name="password"
-                                className="bg-secondary text-light border-0"
-                                placeholder="••••••"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
+                    {/* === Campos de usuario web condicionales === */}
+                    {formData.isWebUser && (
+                        <>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Usuario Web</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="username"
+                                    className="bg-secondary text-light border-0"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    required={formData.isWebUser}
+                                />
+                            </Form.Group>
+
+                            {!formData.id && (
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Contraseña Web</Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        name="password"
+                                        className="bg-secondary text-light border-0"
+                                        placeholder="••••••"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        required={formData.isWebUser}
+                                    />
+                                </Form.Group>
+                            )}
+                        </>
                     )}
 
                     {role === "SA" && (
