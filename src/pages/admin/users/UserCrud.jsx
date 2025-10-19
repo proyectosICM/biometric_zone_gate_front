@@ -59,6 +59,7 @@ export function UserCrud() {
 
     const handleSave = async (userData) => {
         try {
+            /*
             if (!userData.name || !userData.email || !userData.username) {
                 Swal.fire({
                     title: "Error",
@@ -70,7 +71,7 @@ export function UserCrud() {
                 });
                 return;
             }
-
+*/
             const payload = {
                 ...userData,
                 company: role === "SA" ? { id: userData.companyId } : { id: company },
