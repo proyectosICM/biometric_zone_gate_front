@@ -30,7 +30,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 password: "",
                 adminLevel: user.adminLevel ?? 0,
                 enabled: user.enabled ?? true,
-                isWebUser: !!user.username, // si tiene username, es usuario web
+                isWebUser: !!user.username, // si tiene username => es web user
                 companyId: user.company?.id || (role === "SA" ? "" : 1),
             });
 
@@ -58,10 +58,22 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === "checkbox" ? checked : value,
-        }));
+
+        // Si se desactiva el usuario web, limpiar sus campos
+        if (name === "isWebUser" && !checked) {
+            setFormData((prev) => ({
+                ...prev,
+                isWebUser: false,
+                email: "",
+                username: "",
+                password: "",
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: type === "checkbox" ? checked : value,
+            }));
+        }
     };
 
     // === Manejo de credenciales ===
@@ -75,7 +87,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     ? 10
                     : value === "CARD"
                     ? 11
-                    : 12; // fingerprint u otros
+                    : 12;
         }
 
         setCredentials(updated);
@@ -94,12 +106,14 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.email) return;
+        if (!formData.name) return;
         if (role === "SA" && !formData.companyId) return;
 
-        // Si no es usuario web, limpiamos username y password
         const finalForm = { ...formData };
+
+        // limpiar si no es usuario web
         if (!formData.isWebUser) {
+            finalForm.email = null;
             finalForm.username = null;
             finalForm.password = null;
         }
@@ -107,7 +121,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         const finalData = {
             ...finalForm,
             company: { id: Number(finalForm.companyId) },
-            credentials: credentials,
+            credentials,
         };
 
         onSave(finalData);
@@ -135,18 +149,6 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            name="email"
-                            className="bg-secondary text-light border-0"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </Form.Group>
-
                     {/* === Toggle Usuario Web === */}
                     <Form.Group className="mb-3" controlId="isWebUserSwitch">
                         <Form.Check
@@ -161,6 +163,18 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     {/* === Campos de usuario web condicionales === */}
                     {formData.isWebUser && (
                         <>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Email</Form.Label>
+                                <Form.Control
+                                    type="email"
+                                    name="email"
+                                    className="bg-secondary text-light border-0"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required={formData.isWebUser}
+                                />
+                            </Form.Group>
+
                             <Form.Group className="mb-3">
                                 <Form.Label>Usuario Web</Form.Label>
                                 <Form.Control
