@@ -13,7 +13,7 @@ import {
     useCreateUser,
     useUpdateUser,
     useDeleteUser,
-} from "../../../api/hooks/useUser";
+} from "../../../api/hooks/useUser"; 
 
 import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 
