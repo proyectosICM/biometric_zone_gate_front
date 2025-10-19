@@ -27,7 +27,7 @@ export function UserCrud() {
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [sortBy, setSortBy] = useState("createdAt");
-    const [direction, setDirection] = useState("asc");
+    const [direction, setDirection] = useState("desc");
 
     // Users
     const allUsersQuery = useGetAllUsersPaginated(page, size, sortBy, direction);
