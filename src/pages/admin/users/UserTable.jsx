@@ -25,7 +25,7 @@ export function UserTable({ users, onEdit, onDelete }) {
       <Table striped bordered hover variant="dark" className="align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>Id</th>
             <th>Nombre</th>
             <th>Email</th>
             <th>Usuario</th>
