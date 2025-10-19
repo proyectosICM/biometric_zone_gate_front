@@ -78,6 +78,8 @@ export function UserCrud() {
                 credentials: userData.credentials || [],
             };
 
+            console.log(payload);
+
             if (userData.id) {
                 await updateUser.mutateAsync({ id: userData.id, data: payload });
                 Swal.fire({
