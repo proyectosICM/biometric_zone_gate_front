@@ -26,7 +26,7 @@ export function UserCrud() {
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
-    const [sortBy, setSortBy] = useState("name");
+    const [sortBy, setSortBy] = useState("created_at");
     const [direction, setDirection] = useState("asc");
 
     // Users

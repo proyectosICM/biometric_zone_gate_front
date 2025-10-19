@@ -39,7 +39,7 @@ export function UserTable({ users, onEdit, onDelete }) {
           {users.length > 0 ? (
             users.map((u, index) => (
               <tr key={u.id}>
-                <td>{index + 1}</td>
+                <td>{u.id}</td>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
                 <td>{u.username}</td>
