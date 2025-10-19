@@ -75,6 +75,7 @@ export function UserCrud() {
             const payload = {
                 ...userData,
                 company: role === "SA" ? { id: userData.companyId } : { id: company },
+                credentials: userData.credentials || [],
             };
 
             if (userData.id) {
