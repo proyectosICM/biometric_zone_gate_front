@@ -14,6 +14,10 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         companyId: role === "SA" ? "" : 1,
     });
 
+    const [credentials, setCredentials] = useState([
+        { type: "PASSWORD", backupNum: 10, record: "" },
+    ]);
+
     useEffect(() => {
         if (user) {
             setFormData({
@@ -27,6 +31,12 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 enabled: user.enabled ?? true,
                 companyId: user.company?.id || (role === "SA" ? "" : 1),
             });
+
+            setCredentials(
+                user.credentials && user.credentials.length
+                    ? user.credentials
+                    : [{ type: "PASSWORD", backupNum: 10, record: "" }]
+            );
         } else {
             setFormData({
                 id: null,
@@ -39,6 +49,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 enabled: true,
                 companyId: role === "SA" ? "" : 1,
             });
+            setCredentials([{ type: "PASSWORD", backupNum: 10, record: "" }]);
         }
     }, [user, show, role]);
 
@@ -50,11 +61,46 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         }));
     };
 
+    // === Manejo de credenciales ===
+    const handleCredentialChange = (index, field, value) => {
+        const updated = [...credentials];
+        updated[index][field] = value;
+
+        if (field === "type") {
+            updated[index].backupNum =
+                value === "PASSWORD"
+                    ? 10
+                    : value === "CARD"
+                    ? 11
+                    : 12; // para huella u otros
+        }
+
+        setCredentials(updated);
+    };
+
+    const addCredential = () => {
+        setCredentials([
+            ...credentials,
+            { type: "PASSWORD", backupNum: 10, record: "" },
+        ]);
+    };
+
+    const removeCredential = (index) => {
+        setCredentials(credentials.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.name || !formData.email || !formData.username) return;
-        if (role === "SA" && !formData.companyId) return; // obligatorio seleccionar empresa
-        onSave(formData);
+        if (role === "SA" && !formData.companyId) return;
+
+        const finalData = {
+            ...formData,
+            company: { id: Number(formData.companyId) },
+            credentials: credentials,
+        };
+
+        onSave(finalData);
     };
 
     return (
@@ -125,12 +171,19 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                 name="companyId"
                                 className="bg-secondary text-light border-0"
                                 value={formData.companyId}
-                                onChange={(e) => setFormData({ ...formData, companyId: Number(e.target.value) })}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        companyId: Number(e.target.value),
+                                    })
+                                }
                                 required
                             >
                                 <option value="">Seleccione una empresa</option>
-                                {companies.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                {companies.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
@@ -159,6 +212,75 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                             onChange={handleChange}
                         />
                     </Form.Group>
+
+                    {/* === Sección de credenciales === */}
+                    <hr className="border-secondary" />
+                    <h5 className="text-info mb-3">Credenciales</h5>
+
+                    {credentials.map((cred, index) => (
+                        <div
+                            key={index}
+                            className="bg-secondary rounded p-3 mb-3 border border-dark"
+                        >
+                            <Form.Group className="mb-2">
+                                <Form.Label>Tipo</Form.Label>
+                                <Form.Select
+                                    className="bg-dark text-light border-0"
+                                    value={cred.type}
+                                    onChange={(e) =>
+                                        handleCredentialChange(index, "type", e.target.value)
+                                    }
+                                >
+                                    <option value="PASSWORD">Contraseña</option>
+                                    <option value="CARD">Tarjeta</option>
+                                    <option value="FINGERPRINT">Huella</option>
+                                </Form.Select>
+                            </Form.Group>
+
+                            <Form.Group className="mb-2">
+                                <Form.Label>BackupNum</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    className="bg-dark text-light border-0"
+                                    value={cred.backupNum}
+                                    onChange={(e) =>
+                                        handleCredentialChange(index, "backupNum", Number(e.target.value))
+                                    }
+                                />
+                            </Form.Group>
+
+                            <Form.Group className="mb-2">
+                                <Form.Label>Dato / Record</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    className="bg-dark text-light border-0"
+                                    placeholder={
+                                        cred.type === "PASSWORD"
+                                            ? "Ej. 1234"
+                                            : cred.type === "CARD"
+                                            ? "Número de tarjeta"
+                                            : "Template de huella"
+                                    }
+                                    value={cred.record}
+                                    onChange={(e) =>
+                                        handleCredentialChange(index, "record", e.target.value)
+                                    }
+                                />
+                            </Form.Group>
+
+                            <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => removeCredential(index)}
+                            >
+                                Eliminar
+                            </Button>
+                        </div>
+                    ))}
+
+                    <Button variant="outline-light" size="sm" onClick={addCredential}>
+                        + Añadir Credencial
+                    </Button>
                 </Modal.Body>
 
                 <Modal.Footer className="bg-dark border-secondary">
