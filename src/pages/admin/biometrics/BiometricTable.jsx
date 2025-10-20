@@ -1,6 +1,6 @@
 import { Button, Table } from "react-bootstrap";
 
-export function BiometricTable({ biometrics, onEdit, onDelete }) {
+export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers }) {
     return (
         <div className="table-responsive">
             <Table striped bordered hover variant="dark">
@@ -35,6 +35,13 @@ export function BiometricTable({ biometrics, onEdit, onDelete }) {
                                     onClick={() => onDelete(b.id)}
                                 >
                                     Eliminar
+                                </Button>
+                                <Button
+                                    variant="info"
+                                    size="sm"
+                                    onClick={() => onManageUsers(b.id)}
+                                >
+                                    Modificar lista de usuarios permitidos
                                 </Button>
                             </td>
                         </tr>

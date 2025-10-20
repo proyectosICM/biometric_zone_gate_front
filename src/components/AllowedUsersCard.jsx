@@ -12,7 +12,7 @@ export function AllowedUsersCard({ usersPage, onEdit }) {
           <thead>
             <tr>
               <th>#</th>
-              <th>Nombre</th>
+              <th>Nombre</th> 
               <th>Username</th>
               <th>Habilitado</th>
               <th>Semana/Zona</th>

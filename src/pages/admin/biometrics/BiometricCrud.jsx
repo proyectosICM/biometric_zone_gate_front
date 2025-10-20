@@ -136,6 +136,10 @@ export function BiometricCrud() {
     });
   };
 
+  const handleManageUsers = (id) => {
+    navigate(`/usuarios-permitidos/${id}`);
+  }
+
   if (isLoading) {
     return (
       <div className="g-background d-flex justify-content-center align-items-center vh-100">
@@ -198,6 +202,7 @@ export function BiometricCrud() {
             setShowModal(true);
           }}
           onDelete={handleDelete}
+          onManageUsers={handleManageUsers}
         />
 
         <div className="d-flex justify-content-center mt-3">
