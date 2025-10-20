@@ -3,10 +3,11 @@ import { Table, Container, Button, Modal, Row, Col, Spinner } from "react-bootst
 import { useNavigate } from "react-router-dom";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
-import { useGetLogsByCompany } from "../api/hooks/useAccessLogs"; // 👈 nuevo import
+import { useGetLogsByCompany } from "../api/hooks/useAccessLogs";
 
 export function UserAccessList() {
-  const companyId = 1; // 🔧 En un caso real esto vendría del contexto del usuario logueado
+  const companyId = localStorage.getItem("bzg_companyId");
+  const role = localStorage.getItem("bzg_role");;
   const navigate = useNavigate();
 
   // Paginación de usuarios
