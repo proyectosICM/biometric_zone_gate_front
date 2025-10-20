@@ -12,7 +12,7 @@ import {
     useGetUsersByCompanyIdPaged,
     useCreateUser,
     useUpdateUser,
-    useDeleteUser,
+    useDeleteUser, 
 } from "../../../api/hooks/useUser";
 
 import { useGetAllCompanies } from "../../../api/hooks/useCompany";

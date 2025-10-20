@@ -10,7 +10,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         username: "",
         password: "",
         adminLevel: 0,
-        enabled: true,
+        enabled: true, 
         isWebUser: false,
         companyId: role === "SA" ? "" : 1,
     });
@@ -272,7 +272,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                     }
                                 >
                                     <option value="PASSWORD">Contraseña</option>
-                                    <option value="CARD">Tarjeta</option>
+                                    <option value="CARD">Tarjeta RFID</option>
                                     <option value="FINGERPRINT">Huella</option>
                                 </Form.Select>
                             </Form.Group>

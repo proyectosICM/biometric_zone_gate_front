@@ -20,8 +20,8 @@ import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 export function BiometricCrud() {
   const navigate = useNavigate();
 
-  const company = 1; // Normalmente del JWT o localStorage
-  const role = "SA"; // "SA" = Super Admin
+  const company = localStorage.getItem("bzg_companyId");
+  const role = localStorage.getItem("bzg_role");;
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
