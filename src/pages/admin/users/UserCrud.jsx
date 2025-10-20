@@ -21,8 +21,9 @@ export function UserCrud() {
     const navigate = useNavigate();
 
     // En producción, estos valores vendrán del localStorage o JWT
-    const company = 1;
-    const role = "SA"; // "SA" = Super Admin
+    const company = localStorage.getItem("bzg_companyId");
+    const role = localStorage.getItem("bzg_role");; // "SA" = Super Admin´
+    alert(role);
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
@@ -59,11 +60,10 @@ export function UserCrud() {
 
     const handleSave = async (userData) => {
         try {
-            /*
-            if (!userData.name || !userData.email || !userData.username) {
+            if (!userData.name) {
                 Swal.fire({
                     title: "Error",
-                    text: "Los campos Nombre, Email y Usuario son obligatorios",
+                    text: "El campo nombre es obligatorio",
                     icon: "error",
                     background: "#212529",
                     color: "#fff",
@@ -71,7 +71,7 @@ export function UserCrud() {
                 });
                 return;
             }
-*/
+
             const payload = {
                 ...userData,
                 companyId: role === "SA" ? userData.companyId : company,

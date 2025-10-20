@@ -19,7 +19,7 @@ import { getEntryExitTimeString } from "../utils/formatDate";
 import { FaChartLine, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export function Dashboard() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const company = localStorage.getItem("bzg_companyId");
 
   const [zones, setZones] = useState([]);
