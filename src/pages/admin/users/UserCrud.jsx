@@ -23,7 +23,6 @@ export function UserCrud() {
     // En producción, estos valores vendrán del localStorage o JWT
     const company = localStorage.getItem("bzg_companyId");
     const role = localStorage.getItem("bzg_role");; // "SA" = Super Admin´
-    alert(role);
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
