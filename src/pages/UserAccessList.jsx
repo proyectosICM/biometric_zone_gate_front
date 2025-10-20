@@ -102,6 +102,7 @@ export function UserAccessList() {
       </div>
     );
 
+    console.log(companyLogs)
   return (
     <div className="g-background min-vh-100">
       <CustomNavbar />
