@@ -30,8 +30,9 @@ import { formatDateTime, formatSecondsToHHMMSS, getDateAndDayFromTimestamp, getD
 export function ZoneAccessLog() {
   const { deviceId } = useParams();
   const navigate = useNavigate();
-  const role = "SAS"
-
+  const companyId = localStorage.getItem("bzg_companyId");
+  const role = localStorage.getItem("bzg_role");;
+  
   // Estados del modal
   const [showModal, setShowModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState(null);

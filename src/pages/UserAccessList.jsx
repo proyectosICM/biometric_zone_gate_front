@@ -1,24 +1,39 @@
 import React, { useState } from "react";
-import { Table, Container, Button, Modal, Row, Col, Spinner } from "react-bootstrap";
+import {
+  Table,
+  Container,
+  Button,
+  Modal,
+  Row,
+  Col,
+  Spinner,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
-import { useGetLogsByCompany } from "../api/hooks/useAccessLogs";
+import { useGetLogsByCompanyPaginated } from "../api/hooks/useAccessLogs";
 
 export function UserAccessList() {
   const companyId = localStorage.getItem("bzg_companyId");
-  const role = localStorage.getItem("bzg_role");;
+  const role = localStorage.getItem("bzg_role");
   const navigate = useNavigate();
 
-  // Paginación de usuarios
+  // 📄 Paginación de usuarios
   const [page, setPage] = useState(0);
   const [size] = useState(10);
   const [sortBy] = useState("id");
   const [direction] = useState("asc");
 
-  // Modal descarga
+  // 📄 Paginación de accesos
+  const [logPage, setLogPage] = useState(0);
+  const [logSize] = useState(10);
+  const [logSortBy] = useState("timestamp");
+  const [logDirection] = useState("desc");
+
+  // 📁 Modal de descarga
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
+  // 🧠 Fetch de usuarios
   const { data, isLoading, isError } = useGetUsersByCompanyIdPaged(
     companyId,
     page,
@@ -27,19 +42,31 @@ export function UserAccessList() {
     direction
   );
 
+  // 🧠 Fetch de accesos paginados
   const {
-    data: companyLogs,
+    data: logsData,
     isLoading: isLoadingLogs,
     isError: isErrorLogs,
-  } = useGetLogsByCompany(companyId);
+  } = useGetLogsByCompanyPaginated(
+    companyId,
+    logPage,
+    logSize,
+    logSortBy,
+    logDirection
+  );
 
   const users = data?.content || [];
   const totalPages = data?.totalPages || 1;
 
+  const companyLogs = logsData?.content || [];
+  const totalLogPages = logsData?.totalPages || 1;
+
+  // 📎 Navegar a vista de accesos individuales
   const handleViewClick = (userId) => {
     navigate(`/user-access/${userId}`);
   };
 
+  // 📎 Descargar registros
   const handleDownloadClick = (range) => {
     alert(`Descargando registros: ${range}`);
     setShowDownloadModal(false);
@@ -107,7 +134,7 @@ export function UserAccessList() {
               </tbody>
             </Table>
 
-            {/* Controles de paginación */}
+            {/* Controles de paginación usuarios */}
             <div className="d-flex justify-content-between align-items-center text-light">
               <Button
                 variant="secondary"
@@ -152,39 +179,65 @@ export function UserAccessList() {
         )}
 
         {!isLoadingLogs && !isErrorLogs && (
-          <Table striped bordered hover variant="dark">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Zona / Dispositivo</th>
-                <th>Acción</th>
-                <th>Fecha y hora</th>
-                <th>Observación</th>
-              </tr>
-            </thead>
-            <tbody>
-              {companyLogs && companyLogs.length > 0 ? (
-                companyLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td>{log.user?.name || "Desconocido"}</td>
-                    <td>{log.device?.name || "N/A"}</td>
-                    <td>{log.action}</td>
-                    <td>{new Date(log.timestamp).toLocaleString()}</td>
-                    <td>{log.observation || "-"}</td>
-                  </tr>
-                ))
-              ) : (
+          <>
+            <Table striped bordered hover variant="dark">
+              <thead>
                 <tr>
-                  <td colSpan="5" className="text-center text-light">
-                    No hay registros disponibles.
-                  </td>
+                  <th>Usuario</th>
+                  <th>Zona / Dispositivo</th>
+                  <th>Acción</th>
+                  <th>Fecha y hora</th>
+                  <th>Observación</th>
                 </tr>
-              )}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {companyLogs.length > 0 ? (
+                  companyLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td>{log.user?.name || "Desconocido"}</td>
+                      <td>{log.device?.name || "N/A"}</td>
+                      <td>{log.action}</td>
+                      <td>{new Date(log.timestamp).toLocaleString()}</td>
+                      <td>{log.observation || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="text-center text-light">
+                      No hay registros disponibles.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+
+            {/* Controles de paginación accesos */}
+            <div className="d-flex justify-content-between align-items-center text-light mt-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={logPage === 0}
+                onClick={() => setLogPage((p) => p - 1)}
+              >
+                ← Anterior
+              </Button>
+              <span>
+                Página {logPage + 1} de {totalLogPages}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={logPage + 1 >= totalLogPages}
+                onClick={() => setLogPage((p) => p + 1)}
+              >
+                Siguiente →
+              </Button>
+            </div>
+          </>
         )}
 
-        <div className="d-flex justify-content-end mt-3">
+        {/* Botón descarga */}
+        <div className="d-flex justify-content-end mt-4">
           <Button variant="light" onClick={() => setShowDownloadModal(true)}>
             Descargar registro completo en Excel
           </Button>
@@ -197,7 +250,10 @@ export function UserAccessList() {
         onHide={() => setShowDownloadModal(false)}
         centered
       >
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+        <Modal.Header
+          closeButton
+          className="bg-dark text-light border-secondary"
+        >
           <Modal.Title>Seleccionar rango de descarga</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
