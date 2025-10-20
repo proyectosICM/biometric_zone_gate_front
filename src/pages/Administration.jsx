@@ -6,6 +6,8 @@ import { FaUsers, FaBuilding, FaFingerprint, FaListAlt } from "react-icons/fa";
 export function Administration() {
   const navigate = useNavigate();
 
+  const role = localStorage.getItem("bzg_role");
+
   const cards = [
     {
       title: "Usuarios",
@@ -18,6 +20,7 @@ export function Administration() {
       icon: <FaBuilding size={40} />,
       description: "Administra las empresas registradas",
       route: "/companies",
+      requiresSA: true,
     },
     {
       title: "Biométricos",
@@ -30,8 +33,13 @@ export function Administration() {
       icon: <FaListAlt size={40} />,
       description: "Gestiona los tipos de eventos de acceso",
       route: "/event-types",
+      requiresSA: true,
     },
   ];
+
+  const visibleCards = cards.filter(
+    (card) => !card.requiresSA || role === "SA"
+  );
 
   return (
     <div className="g-background">

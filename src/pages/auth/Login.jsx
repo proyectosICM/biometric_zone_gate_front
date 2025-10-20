@@ -27,7 +27,6 @@ export function Login() {
                     //console.log("Token guardado, buscando datos del usuario...");
 
                     try {
-                        console.log(`${API_BASE_URL}/users/username/${username}`);
                         const res = await axios.get(`${API_BASE_URL}/users/username/${username}`.replace(/([^:]\/)\/+/g, "$1"), {
                             headers: {
                                 Authorization: `Bearer ${data.token}`,
