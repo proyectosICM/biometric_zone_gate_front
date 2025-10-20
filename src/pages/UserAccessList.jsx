@@ -7,9 +7,24 @@ import {
   Row,
   Col,
   Spinner,
+  Form,
+  Stack,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { CustomNavbar } from "../components/CustomNavbar";
+import Swal from "sweetalert2";
+
+import {
+  FaUsers,
+  FaUser,
+  FaBuilding,
+  FaEye,
+  FaArrowLeft,
+  FaDownload,
+  FaStickyNote,
+  FaTools,
+} from "react-icons/fa";
+
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
 import { useGetLogsByCompanyPaginated } from "../api/hooks/useAccessLogs";
 
@@ -62,159 +77,173 @@ export function UserAccessList() {
   const totalLogPages = logsData?.totalPages || 1;
 
   // 📎 Navegar a vista de accesos individuales
-  const handleViewClick = (userId) => {
-    navigate(`/user-access/${userId}`);
-  };
+  const handleViewClick = (userId) => navigate(`/user-access/${userId}`);
 
   // 📎 Descargar registros
   const handleDownloadClick = (range) => {
-    alert(`Descargando registros: ${range}`);
     setShowDownloadModal(false);
+    Swal.fire({
+      icon: "info",
+      title: "Descarga iniciada",
+      text: `Descargando registros (${range}).`,
+      background: "#1e1e1e",
+      color: "#fff",
+      confirmButtonColor: "#198754",
+    });
   };
 
+  // 🚀 Estados de carga / error
+  if (isLoading)
+    return (
+      <div className="g-background min-vh-100 d-flex flex-column justify-content-center align-items-center">
+        <CustomNavbar />
+        <Spinner animation="border" variant="light" />
+        <p className="text-light mt-3">Cargando usuarios...</p>
+      </div>
+    );
+
+  if (isError)
+    return (
+      <div className="g-background min-vh-100 d-flex flex-column justify-content-center align-items-center">
+        <CustomNavbar />
+        <p className="text-danger">Error al cargar usuarios.</p>
+      </div>
+    );
+
   return (
-    <div className="g-background">
+    <div className="g-background min-vh-100">
       <CustomNavbar />
-      <Container className="mt-4">
-        {/* SECCIÓN 1: USUARIOS */}
-        <h2 className="text-white mb-2">Acceso de zonas por usuario</h2>
-        <p className="text-light mb-4">
-          Seleccione un usuario para ver sus ingresos a zonas.
+      <Container className="py-4">
+        {/* ENCABEZADO */}
+        <h2 className="text-white text-center mb-4">
+          <FaUsers className="me-2" />
+          Acceso de zonas por usuario
+        </h2>
+
+        <p className="text-center text-light mb-4">
+          Selecciona un usuario para ver su historial de accesos.
         </p>
 
-        {isLoading && (
-          <div className="text-center text-light my-5">
-            <Spinner animation="border" variant="light" />
-            <p>Cargando usuarios...</p>
-          </div>
-        )}
-
-        {isError && (
-          <div className="text-center text-danger my-4">
-            Error al cargar usuarios.
-          </div>
-        )}
-
-        {!isLoading && !isError && (
-          <>
-            <Table striped bordered hover variant="dark">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length > 0 ? (
-                  users.map((user) => (
-                    <tr key={user.id}>
-                      <td>{user.name}</td>
-                      <td>{user.username}</td>
-                      <td>{user.role}</td>
-                      <td>
-                        <Button
-                          variant="light"
-                          size="sm"
-                          onClick={() => handleViewClick(user.id)}
-                        >
-                          Ver acceso a zonas
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="text-center text-light">
-                      No hay usuarios registrados.
+        {/* TABLA USUARIOS */}
+        <div className="table-responsive rounded overflow-hidden shadow mb-5">
+          <Table striped bordered hover variant="dark" className="align-middle mb-0">
+            <thead className="table-dark text-center">
+              <tr>
+                <th><FaUser className="me-2" />Nombre</th>
+                <th>Usuario</th>
+                {role === "SA" && <th><FaBuilding className="me-2" />Empresa</th>}
+                <th>Rol</th>
+                <th><FaTools className="me-2" />Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <tr key={user.id} className="text-center">
+                    <td>{user.name}</td>
+                    <td>{user.username}</td>
+                    {role === "SA" && <td>{user.company?.name || "—"}</td>}
+                    <td>{user.role}</td>
+                    <td>
+                      <Button
+                        variant="outline-light"
+                        size="sm"
+                        onClick={() => handleViewClick(user.id)}
+                      >
+                        <FaEye className="me-2" />
+                        Ver accesos
+                      </Button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </Table>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={role === "SA" ? 5 : 4} className="text-center text-secondary py-4">
+                    No hay usuarios registrados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </div>
 
-            {/* Controles de paginación usuarios */}
-            <div className="d-flex justify-content-between align-items-center text-light">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                ← Anterior
-              </Button>
-              <span>
-                Página {page + 1} de {totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page + 1 >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Siguiente →
-              </Button>
-            </div>
-          </>
-        )}
+        {/* PAGINACIÓN USUARIOS */}
+        <div className="d-flex justify-content-between align-items-center text-light mb-5">
+          <Button
+            variant="outline-light"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            ← Anterior
+          </Button>
+          <span>
+            Página {page + 1} de {totalPages}
+          </span>
+          <Button
+            variant="outline-light"
+            size="sm"
+            disabled={page + 1 >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente →
+          </Button>
+        </div>
 
-        {/* SECCIÓN 2: ACCESOS GENERALES */}
-        <h3 className="text-white mt-5 mb-2">Accesos generales</h3>
-        <p className="text-light mb-4">
-          Registro general de todos los accesos recientes de usuarios de la empresa.
-        </p>
+        {/* ACCESOS GENERALES */}
+        <h3 className="text-white mb-3">
+          <FaStickyNote className="me-2" />
+          Accesos generales
+        </h3>
 
-        {isLoadingLogs && (
+        {isLoadingLogs ? (
           <div className="text-center text-light my-5">
             <Spinner animation="border" variant="light" />
             <p>Cargando accesos...</p>
           </div>
-        )}
-
-        {isErrorLogs && (
+        ) : isErrorLogs ? (
           <div className="text-center text-danger my-4">
-            Error al cargar los registros de accesos.
+            Error al cargar los registros.
           </div>
-        )}
-
-        {!isLoadingLogs && !isErrorLogs && (
+        ) : (
           <>
-            <Table striped bordered hover variant="dark">
-              <thead>
-                <tr>
-                  <th>Usuario</th>
-                  <th>Zona / Dispositivo</th>
-                  <th>Acción</th>
-                  <th>Fecha y hora</th>
-                  <th>Observación</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companyLogs.length > 0 ? (
-                  companyLogs.map((log) => (
-                    <tr key={log.id}>
-                      <td>{log.user?.name || "Desconocido"}</td>
-                      <td>{log.device?.name || "N/A"}</td>
-                      <td>{log.action}</td>
-                      <td>{new Date(log.timestamp).toLocaleString()}</td>
-                      <td>{log.observation || "-"}</td>
-                    </tr>
-                  ))
-                ) : (
+            <div className="table-responsive rounded overflow-hidden shadow">
+              <Table striped bordered hover variant="dark" className="align-middle">
+                <thead className="table-dark text-center">
                   <tr>
-                    <td colSpan="5" className="text-center text-light">
-                      No hay registros disponibles.
-                    </td>
+                    <th>Usuario</th>
+                    <th>Zona / Dispositivo</th>
+                    <th>Acción</th>
+                    <th>Fecha y hora</th>
+                    <th>Observación</th>
                   </tr>
-                )}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {companyLogs.length > 0 ? (
+                    companyLogs.map((log) => (
+                      <tr key={log.id}>
+                        <td>{log.user?.name || "Desconocido"}</td>
+                        <td>{log.device?.name || "N/A"}</td>
+                        <td>{log.action}</td>
+                        <td>{new Date(log.timestamp).toLocaleString()}</td>
+                        <td>{log.observation || "—"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="text-center text-secondary py-4">
+                        No hay registros disponibles.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
 
-            {/* Controles de paginación accesos */}
+            {/* PAGINACIÓN ACCESOS */}
             <div className="d-flex justify-content-between align-items-center text-light mt-3">
               <Button
-                variant="secondary"
+                variant="outline-light"
                 size="sm"
                 disabled={logPage === 0}
                 onClick={() => setLogPage((p) => p - 1)}
@@ -225,7 +254,7 @@ export function UserAccessList() {
                 Página {logPage + 1} de {totalLogPages}
               </span>
               <Button
-                variant="secondary"
+                variant="outline-light"
                 size="sm"
                 disabled={logPage + 1 >= totalLogPages}
                 onClick={() => setLogPage((p) => p + 1)}
@@ -236,24 +265,22 @@ export function UserAccessList() {
           </>
         )}
 
-        {/* Botón descarga */}
+        {/* BOTÓN DESCARGA */}
         <div className="d-flex justify-content-end mt-4">
-          <Button variant="light" onClick={() => setShowDownloadModal(true)}>
+          <Button
+            variant="outline-light"
+            size="sm"
+            onClick={() => setShowDownloadModal(true)}
+          >
+            <FaDownload className="me-2" />
             Descargar registro completo en Excel
           </Button>
         </div>
       </Container>
 
       {/* MODAL DESCARGA */}
-      <Modal
-        show={showDownloadModal}
-        onHide={() => setShowDownloadModal(false)}
-        centered
-      >
-        <Modal.Header
-          closeButton
-          className="bg-dark text-light border-secondary"
-        >
+      <Modal show={showDownloadModal} onHide={() => setShowDownloadModal(false)} centered>
+        <Modal.Header closeButton className="bg-dark text-light border-secondary">
           <Modal.Title>Seleccionar rango de descarga</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
@@ -262,7 +289,7 @@ export function UserAccessList() {
               <Col xs={6} className="mb-3" key={label}>
                 <Button
                   variant="outline-light"
-                  className="w-100 p-4"
+                  className="w-100 p-3"
                   style={{ borderRadius: "0.5rem" }}
                   onClick={() => handleDownloadClick(label)}
                 >
