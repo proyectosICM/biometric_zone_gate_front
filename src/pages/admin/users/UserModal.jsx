@@ -120,7 +120,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
         const finalData = {
             ...finalForm,
-            companyId: { id: Number(finalForm.companyId) },
+            companyId: Number(finalForm.companyId),
             credentials,
         };
 
