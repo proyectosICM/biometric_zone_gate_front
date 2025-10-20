@@ -32,6 +32,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers }) 
                                 <Button
                                     variant="secondary"
                                     size="sm"
+                                    className="me-2"
                                     onClick={() => onDelete(b.id)}
                                 >
                                     Eliminar
