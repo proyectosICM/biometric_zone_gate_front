@@ -13,7 +13,7 @@ import {
     useCreateUser,
     useUpdateUser,
     useDeleteUser,
-} from "../../../api/hooks/useUser"; 
+} from "../../../api/hooks/useUser";
 
 import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 
@@ -74,7 +74,7 @@ export function UserCrud() {
 */
             const payload = {
                 ...userData,
-                company: role === "SA" ? { id: userData.companyId } : { id: company },
+                companyId: role === "SA" ? userData.companyId : company,
                 credentials: userData.credentials || [],
             };
 
