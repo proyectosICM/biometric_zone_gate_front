@@ -7,8 +7,6 @@ import {
   Row,
   Col,
   Spinner,
-  Form,
-  Stack,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { CustomNavbar } from "../components/CustomNavbar";
@@ -19,10 +17,10 @@ import {
   FaUser,
   FaBuilding,
   FaEye,
-  FaArrowLeft,
   FaDownload,
   FaStickyNote,
   FaTools,
+  FaIdBadge,
 } from "react-icons/fa";
 
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
@@ -33,31 +31,27 @@ export function UserAccessList() {
   const role = localStorage.getItem("bzg_role");
   const navigate = useNavigate();
 
-  // 📄 Paginación de usuarios
+  // Paginación de usuarios
   const [page, setPage] = useState(0);
   const [size] = useState(10);
-  const [sortBy] = useState("id");
-  const [direction] = useState("asc");
 
-  // 📄 Paginación de accesos
+  // Paginación de logs
   const [logPage, setLogPage] = useState(0);
   const [logSize] = useState(10);
-  const [logSortBy] = useState("createdAt");
-  const [logDirection] = useState("desc");
 
-  // 📁 Modal de descarga
+  // Modal descarga
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  // 🧠 Fetch de usuarios
+  // Fetch usuarios
   const { data, isLoading, isError } = useGetUsersByCompanyIdPaged(
     companyId,
     page,
     size,
-    sortBy,
-    direction
+    "id",
+    "asc"
   );
 
-  // 🧠 Fetch de accesos paginados
+  // Fetch logs
   const {
     data: logsData,
     isLoading: isLoadingLogs,
@@ -66,8 +60,8 @@ export function UserAccessList() {
     companyId,
     logPage,
     logSize,
-    logSortBy,
-    logDirection
+    "createdAt",
+    "desc"
   );
 
   const users = data?.content || [];
@@ -76,10 +70,8 @@ export function UserAccessList() {
   const companyLogs = logsData?.content || [];
   const totalLogPages = logsData?.totalPages || 1;
 
-  // 📎 Navegar a vista de accesos individuales
   const handleViewClick = (userId) => navigate(`/user-access/${userId}`);
 
-  // 📎 Descargar registros
   const handleDownloadClick = (range) => {
     setShowDownloadModal(false);
     Swal.fire({
@@ -92,7 +84,7 @@ export function UserAccessList() {
     });
   };
 
-  // 🚀 Estados de carga / error
+  // Loading / error
   if (isLoading)
     return (
       <div className="g-background min-vh-100 d-flex flex-column justify-content-center align-items-center">
@@ -114,7 +106,6 @@ export function UserAccessList() {
     <div className="g-background min-vh-100">
       <CustomNavbar />
       <Container className="py-4">
-        {/* ENCABEZADO */}
         <h2 className="text-white text-center mb-4">
           <FaUsers className="me-2" />
           Acceso de zonas por usuario
@@ -129,20 +120,26 @@ export function UserAccessList() {
           <Table striped bordered hover variant="dark" className="align-middle mb-0">
             <thead className="table-dark text-center">
               <tr>
-                <th><FaUser className="me-2" />Nombre</th>
+                <th><FaIdBadge className="me-1" />ID</th>
+                <th><FaUser className="me-1" />Nombre</th>
                 <th>Usuario</th>
-                {role === "SA" && <th><FaBuilding className="me-2" />Empresa</th>}
+                {role === "SA" && (
+                  <th><FaBuilding className="me-1" />Empresa</th>
+                )}
                 <th>Rol</th>
-                <th><FaTools className="me-2" />Acciones</th>
+                <th><FaTools className="me-1" />Acciones</th>
               </tr>
             </thead>
             <tbody>
               {users.length > 0 ? (
                 users.map((user) => (
                   <tr key={user.id} className="text-center">
+                    <td>{user.id}</td>
                     <td>{user.name}</td>
                     <td>{user.username}</td>
-                    {role === "SA" && <td>{user.company?.name || "—"}</td>}
+                    {role === "SA" && (
+                      <td>{user.company?.name || "—"}</td>
+                    )}
                     <td>{user.role}</td>
                     <td>
                       <Button
@@ -158,7 +155,7 @@ export function UserAccessList() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={role === "SA" ? 5 : 4} className="text-center text-secondary py-4">
+                  <td colSpan={role === "SA" ? 6 : 5} className="text-center text-secondary py-4">
                     No hay usuarios registrados.
                   </td>
                 </tr>
@@ -167,7 +164,7 @@ export function UserAccessList() {
           </Table>
         </div>
 
-        {/* PAGINACIÓN USUARIOS */}
+        {/* Paginación usuarios */}
         <div className="d-flex justify-content-between align-items-center text-light mb-5">
           <Button
             variant="outline-light"
@@ -208,20 +205,20 @@ export function UserAccessList() {
         ) : (
           <>
             <div className="table-responsive rounded overflow-hidden shadow">
-              <Table striped bordered hover variant="dark" className="align-middle">
+              <Table striped bordered hover variant="dark" className="align-middle mb-0">
                 <thead className="table-dark text-center">
                   <tr>
-                    <th>Usuario</th>
-                    <th>Zona / Dispositivo</th>
+                    <th><FaUser className="me-1" />Usuario</th>
+                    <th><FaBuilding className="me-1" />Zona / Dispositivo</th>
                     <th>Acción</th>
                     <th>Fecha y hora</th>
-                    <th>Observación</th>
+                    <th><FaStickyNote className="me-1" />Observación</th>
                   </tr>
                 </thead>
                 <tbody>
                   {companyLogs.length > 0 ? (
                     companyLogs.map((log) => (
-                      <tr key={log.id}>
+                      <tr key={log.id} className="text-center">
                         <td>{log.user?.name || "Desconocido"}</td>
                         <td>{log.device?.name || "N/A"}</td>
                         <td>{log.action}</td>
@@ -240,7 +237,7 @@ export function UserAccessList() {
               </Table>
             </div>
 
-            {/* PAGINACIÓN ACCESOS */}
+            {/* Paginación accesos */}
             <div className="d-flex justify-content-between align-items-center text-light mt-3">
               <Button
                 variant="outline-light"
