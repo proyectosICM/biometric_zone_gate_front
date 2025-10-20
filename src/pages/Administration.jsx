@@ -47,7 +47,7 @@ export function Administration() {
       <Container className="mt-4">
         <h2 className="text-white mb-4">Administración</h2>
         <Row>
-          {cards.map((card, idx) => (
+          {visibleCards.map((card, idx) => (
             <Col key={idx} md={4} className="mb-4">
               <Card
                 className="h-100 shadow text-center text-white"
