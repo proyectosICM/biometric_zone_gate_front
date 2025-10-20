@@ -9,22 +9,22 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 export function Login() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const { mutate: login, isLoading } = useLogin();
-
-    //const { mutate: login, isLoading } = useLogin();
     const navigate = useNavigate();
 
-const handleSubmit = (e) => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+
+    const { mutate: login, isLoading } = useLogin();
+
+
+    const handleSubmit = (e) => {
         e.preventDefault();
         login(
             { username, password },
             {
                 onSuccess: async (data) => {
                     localStorage.setItem("bzg_token", data.token);
-                    //console.log(data);
-                    console.log("Token guardado, buscando datos del usuario...");
+                    //console.log("Token guardado, buscando datos del usuario...");
 
                     try {
                         console.log(`${API_BASE_URL}/users/username/${username}`);
@@ -41,7 +41,7 @@ const handleSubmit = (e) => {
                         localStorage.setItem("bzg_username", user.username);
                         localStorage.setItem("bzg_companyId", user.company.id);
                         localStorage.setItem("bzg_role", user.role);
-                        console.log("Datos del usuario guardados");
+                        //console.log("Datos del usuario guardados");
                         navigate("/");
                     } catch (err) {
                         console.error("Error al obtener datos del usuario", err);
@@ -66,7 +66,6 @@ const handleSubmit = (e) => {
     return (
         <div className="login-container">
             <form className="login-form" onSubmit={handleSubmit}>
-                {/* Icono circular encima */}
                 <div className="login-icon">
                     <FiUser size={32} />
                 </div>

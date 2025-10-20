@@ -20,7 +20,7 @@ import { FaChartLine, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const company = 1;
+  const company = localStorage.getItem("bzg_companyId");
 
   const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);

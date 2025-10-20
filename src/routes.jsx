@@ -14,6 +14,7 @@ import { UserAccessList } from "./pages/UserAccessList";
 import { ZoneAccessLog } from "./pages/ZoneAccessLog";
 
 export const routes = [
+  { path: "/login", component: <Login /> },
   { path: "/", component: <Dashboard /> },
   { path: "/zona-ingresos/:deviceId", component: <ZoneAccessLog /> },
   { path: "/config-device/:deviceId", component: <DeviceConfiguration /> },
@@ -31,7 +32,7 @@ export const routes = [
   { path: "/biometrics", component: <BiometricCrud /> },
   { path: "/event-types", component: <EventTypeCrud /> },
 
-  { path: "/login", component: <Login /> },
+
   {
     /* path: "/usuarios-permitidos/:id", component: <AllowedUsersManager /> */
   },
