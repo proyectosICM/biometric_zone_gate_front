@@ -27,7 +27,7 @@ export function UserAccessList() {
   // 📄 Paginación de accesos
   const [logPage, setLogPage] = useState(0);
   const [logSize] = useState(10);
-  const [logSortBy] = useState("timestamp");
+  const [logSortBy] = useState("createdAt");
   const [logDirection] = useState("desc");
 
   // 📁 Modal de descarga
