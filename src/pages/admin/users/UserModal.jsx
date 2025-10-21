@@ -15,6 +15,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         companyId: role === "SA" ? "" : 1,
     });
 
+    console.log(user);
     const [credentials, setCredentials] = useState([
         { type: "PASSWORD", backupNum: 10, record: "" },
     ]);
