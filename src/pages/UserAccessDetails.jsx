@@ -18,12 +18,15 @@ import {
   FaCheckCircle,
   FaMicrochip,
   FaBolt,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { useGetLogsByUser } from "../api/hooks/useAccessLogs";
 
 export function UserAccessDetails() {
   const navigate = useNavigate();
   const { userId } = useParams();
+  const companyId = localStorage.getItem("bzg_companyId");
+  const role = localStorage.getItem("bzg_role");
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const { data: userLogs, isLoading, isError } = useGetLogsByUser(userId);
