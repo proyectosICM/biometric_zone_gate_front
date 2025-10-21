@@ -2,7 +2,23 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Table, Container, Button, Row, Col, Modal, Spinner } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
-import { FaArrowLeft } from "react-icons/fa";
+import {
+  FaUsers,
+  FaUser,
+  FaBuilding,
+  FaEye,
+  FaDownload,
+  FaStickyNote,
+  FaTools,
+  FaIdBadge,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaHourglassHalf,
+  FaHardHat,
+  FaCheckCircle,
+  FaMicrochip,
+  FaBolt,
+} from "react-icons/fa";
 import { useGetLogsByUser } from "../api/hooks/useAccessLogs";
 
 export function UserAccessDetails() {
