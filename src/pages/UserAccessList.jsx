@@ -21,6 +21,13 @@ import {
   FaStickyNote,
   FaTools,
   FaIdBadge,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaHourglassHalf,
+  FaHardHat,
+  FaCheckCircle,
+  FaMicrochip,
+  FaBolt,
 } from "react-icons/fa";
 
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
