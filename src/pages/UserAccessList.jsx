@@ -32,6 +32,7 @@ import {
 
 import { useGetUsersByCompanyIdPaged } from "../api/hooks/useUser";
 import { useGetLogsByCompanyPaginated } from "../api/hooks/useAccessLogs";
+import { formatSecondsToHHMMSS, getDateAndDayFromTimestamp } from "../utils/formatDate";
 
 export function UserAccessList() {
   const companyId = localStorage.getItem("bzg_companyId");
