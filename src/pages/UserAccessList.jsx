@@ -131,11 +131,11 @@ export function UserAccessList() {
               <tr>
                 <th><FaIdBadge className="me-1" />ID</th>
                 <th><FaUser className="me-1" />Nombre</th>
-                <th>Usuario</th>
+                <th><FaUsers className="me-1 text-secondary" />Usuario</th>
                 {role === "SA" && (
-                  <th><FaBuilding className="me-1" />Empresa</th>
+                  <th><FaBuilding className="me-1 text-warning" /> Empresa</th>
                 )}
-                <th>Rol</th>
+                <th><FaHardHat className="me-1 text-success" /> Rol</th>
                 <th><FaTools className="me-1" />Acciones</th>
               </tr>
             </thead>
@@ -228,9 +228,6 @@ export function UserAccessList() {
                     <th><FaHardHat className="me-1 text-warning" /> EPP</th>
                     <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
                     <th><FaStickyNote className="me-1" /> Observación</th>
-                    <th>Acción</th>
-                    <th>Fecha y hora</th>
-                    <th><FaStickyNote className="me-1" />Observación</th>
                   </tr>
                 </thead>
                 <tbody>
