@@ -7,6 +7,7 @@ import {
   Table,
   Spinner,
   Alert,
+  Pagination,
 } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { useParams, useNavigate } from "react-router-dom";
@@ -29,26 +30,37 @@ import {
 } from "../utils/formatDate";
 import {
   useGetAccessLogById,
-  useGetLogsByUser,
+  useGetLogsByUserPaginated,
 } from "../api/hooks/useAccessLogs";
+import { useState } from "react";
 
 export function AccessLogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // 🔐 Simulación del rol del usuario (reemplaza con tu hook o contexto real)
+  // Simulación de rol (ajusta según tu contexto)
   const role = localStorage.getItem("role") || "USER";
+
+  // Estado de paginación
+  const [page, setPage] = useState(0);
+  const [size] = useState(5); // 👈 cantidad por página
+  const [sortBy] = useState("entryTime");
+  const [direction] = useState("desc");
 
   const { data: accessLog, isLoading, isError } = useGetAccessLogById(id);
   const userId = accessLog?.user?.id;
-  const { data: userAccesses } = useGetLogsByUser(userId);
+
+  const {
+    data: paginatedAccesses,
+    isLoading: isLoadingAccesses,
+  } = useGetLogsByUserPaginated(userId, page, size, sortBy, direction);
 
   if (isLoading) {
     return (
       <div className="g-background d-flex justify-content-center align-items-center vh-100">
         <Spinner animation="border" variant="light" />
       </div>
-    ); 
+    );
   }
 
   if (isError || !accessLog) {
@@ -59,12 +71,16 @@ export function AccessLogDetail() {
     );
   }
 
+  // Datos paginados
+  const accesses = paginatedAccesses?.content || [];
+  const totalPages = paginatedAccesses?.totalPages || 1;
+
   return (
     <div className="g-background min-vh-100">
       <CustomNavbar />
 
       <Container className="mt-4">
-        {/* --- Botón Atrás --- */}
+        {/* Botón Atrás */}
         <Row className="mb-3">
           <Col>
             <Button
@@ -80,9 +96,7 @@ export function AccessLogDetail() {
 
         {/* --- Card principal --- */}
         <Card bg="dark" text="light" className="shadow-lg mb-4">
-          <Card.Header className="text-center fs-4">
-            Detalle del Acceso
-          </Card.Header>
+          <Card.Header className="text-center fs-4">Detalle del Acceso</Card.Header>
           <Card.Body>
             <Row className="mb-3">
               <Col md={6}>
@@ -100,8 +114,6 @@ export function AccessLogDetail() {
                 <FaMicrochip size={14} className="me-2 text-info" />
                 <strong>Dispositivo:</strong> {accessLog.device?.name || "—"}
               </Col>
-
-              {/* Solo mostrar Empresa si rol es SA */}
               {role === "SA" && (
                 <Col md={6}>
                   <FaBuilding size={14} className="me-2 text-info" />
@@ -148,63 +160,98 @@ export function AccessLogDetail() {
             <Row className="mb-3">
               <Col md={6}>
                 <FaCheckCircle size={14} className="me-2 text-success" />
-                <strong>Éxito:</strong>{" "}
-                {accessLog.success ? "✔" : "✖"}
+                <strong>Éxito:</strong> {accessLog.success ? "✔" : "✖"}
               </Col>
               <Col md={6}>
                 <FaStickyNote size={14} className="me-2 text-info" />
-                <strong>Observación:</strong>{" "}
-                {accessLog.observation || "—"}
+                <strong>Observación:</strong> {accessLog.observation || "—"}
               </Col>
             </Row>
           </Card.Body>
         </Card>
 
         {/* --- Tabla de otros accesos --- */}
-        {userAccesses?.length > 0 && (
+        {userId && (
           <Card bg="dark" text="light" className="shadow-lg">
             <Card.Header className="text-center fs-5">
               Otros accesos de este usuario
             </Card.Header>
             <Card.Body>
-              <Table striped bordered hover variant="dark" responsive>
-                <thead className="table-dark text-center">
-                  <tr>
-                    <th><FaIdBadge size={14} className="me-1" /> ID</th>
-                    <th><FaSignInAlt size={14} className="me-1 text-success" /> Entrada</th>
-                    <th><FaSignOutAlt size={14} className="me-1 text-danger" /> Salida</th>
-                    <th><FaHourglassHalf size={14} className="me-1" /> Duración</th>
-                    <th><FaBolt size={14} className="me-1" /> Evento</th>
-                    <th><FaMicrochip size={14} className="me-1" /> Dispositivo</th>
-                    <th><FaCheckCircle size={14} className="me-1 text-success" /> Éxito</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userAccesses.map((entry) => (
-                    <tr key={entry.id}>
-                      <td>{entry.id}</td>
-                      <td>
-                        {entry.entryTime
-                          ? getDateAndDayFromTimestamp(entry.entryTime)
-                          : "—"}
-                      </td>
-                      <td>
-                        {entry.exitTime
-                          ? getDateAndDayFromTimestamp(entry.exitTime)
-                          : "—"}
-                      </td>
-                      <td>
-                        {entry.durationSeconds
-                          ? formatSecondsToHHMMSS(entry.durationSeconds)
-                          : "—"}
-                      </td>
-                      <td>{entry.eventType?.name || "—"}</td>
-                      <td>{entry.device?.name || "—"}</td>
-                      <td>{entry.success ? "✔" : "✖"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              {isLoadingAccesses ? (
+                <div className="text-center py-3">
+                  <Spinner animation="border" variant="light" />
+                </div>
+              ) : (
+                <>
+                  <Table striped bordered hover variant="dark" responsive>
+                    <thead className="table-dark text-center">
+                      <tr>
+                        <th><FaIdBadge size={14} className="me-1" /> ID</th>
+                        <th><FaSignInAlt size={14} className="me-1 text-success" /> Entrada</th>
+                        <th><FaSignOutAlt size={14} className="me-1 text-danger" /> Salida</th>
+                        <th><FaHourglassHalf size={14} className="me-1" /> Duración</th>
+                        <th><FaBolt size={14} className="me-1" /> Evento</th>
+                        <th><FaMicrochip size={14} className="me-1" /> Dispositivo</th>
+                        <th><FaCheckCircle size={14} className="me-1 text-success" /> Éxito</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {accesses.map((entry) => (
+                        <tr key={entry.id}>
+                          <td>{entry.id}</td>
+                          <td>
+                            {entry.entryTime
+                              ? getDateAndDayFromTimestamp(entry.entryTime)
+                              : "—"}
+                          </td>
+                          <td>
+                            {entry.exitTime
+                              ? getDateAndDayFromTimestamp(entry.exitTime)
+                              : "—"}
+                          </td>
+                          <td>
+                            {entry.durationSeconds
+                              ? formatSecondsToHHMMSS(entry.durationSeconds)
+                              : "—"}
+                          </td>
+                          <td>{entry.eventType?.name || "—"}</td>
+                          <td>{entry.device?.name || "—"}</td>
+                          <td>{entry.success ? "✔" : "✖"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+
+                  {/* --- Controles de paginación --- */}
+                  <Pagination className="justify-content-center mt-3">
+                    <Pagination.First
+                      disabled={page === 0}
+                      onClick={() => setPage(0)}
+                    />
+                    <Pagination.Prev
+                      disabled={page === 0}
+                      onClick={() => setPage((prev) => prev - 1)}
+                    />
+                    {[...Array(totalPages)].map((_, index) => (
+                      <Pagination.Item
+                        key={index}
+                        active={index === page}
+                        onClick={() => setPage(index)}
+                      >
+                        {index + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      disabled={page === totalPages - 1}
+                      onClick={() => setPage((prev) => prev + 1)}
+                    />
+                    <Pagination.Last
+                      disabled={page === totalPages - 1}
+                      onClick={() => setPage(totalPages - 1)}
+                    />
+                  </Pagination>
+                </>
+              )}
             </Card.Body>
           </Card>
         )}
