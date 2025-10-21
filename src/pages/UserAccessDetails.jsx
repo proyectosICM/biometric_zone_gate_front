@@ -21,6 +21,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import { useGetLogsByUser } from "../api/hooks/useAccessLogs";
+import { formatSecondsToHHMMSS, getDateAndDayFromTimestamp } from "../utils/formatDate";
 
 export function UserAccessDetails() {
   const navigate = useNavigate();
