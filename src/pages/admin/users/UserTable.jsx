@@ -41,8 +41,8 @@ export function UserTable({ users, onEdit, onDelete }) {
               <tr key={u.id}>
                 <td>{u.id}</td>
                 <td>{u.name}</td>
-                <td>{u.email}</td>
-                <td>{u.username}</td>
+                <td>{u.email || "Sin usuario web"}</td>
+                <td>{u.username || "Sin usuario web"}</td>
                 <td>{renderRole(u.adminLevel)}</td>
                 <td>{u.company?.name || "Sin empresa"}</td>
                 <td>{renderStatus(u.enabled)}</td>
