@@ -10,7 +10,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         username: "",
         password: "",
         adminLevel: 0,
-        enabled: true, 
+        enabled: true,
         isWebUser: false,
         companyId: role === "SA" ? "" : 1,
     });
@@ -36,7 +36,12 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
             setCredentials(
                 user.credentials && user.credentials.length
-                    ? user.credentials
+                    ? user.credentials.map(c => ({
+                        id: c.id || null,
+                        type: c.type,
+                        backupNum: c.backupNum,
+                        record: c.record
+                    }))
                     : [{ type: "PASSWORD", backupNum: 10, record: "" }]
             );
         } else {
@@ -86,8 +91,8 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 value === "PASSWORD"
                     ? 10
                     : value === "CARD"
-                    ? 11
-                    : 12;
+                        ? 11
+                        : 12;
         }
 
         setCredentials(updated);
@@ -298,8 +303,8 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                         cred.type === "PASSWORD"
                                             ? "Ej. 1234"
                                             : cred.type === "CARD"
-                                            ? "Número de tarjeta"
-                                            : "Template de huella"
+                                                ? "Número de tarjeta"
+                                                : "Template de huella"
                                     }
                                     value={cred.record}
                                     onChange={(e) =>
