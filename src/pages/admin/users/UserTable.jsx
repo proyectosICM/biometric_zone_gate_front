@@ -62,7 +62,7 @@ export function UserTable({ users, onEdit, onDelete }) {
                 <td>{u.email || "Sin usuario web"}</td>
                 <td>{u.username || "Sin usuario web"}</td>
                 <td>{renderRole(u.adminLevel)}</td>
-                <td>{u.company?.name || "Sin empresa"}</td>
+                <td>{u.companyId || "Sin empresa"}</td>
                 <td>{getPasswordDevice(u.credentials)}</td>
                 <td>{getCardRfid(u.credentials)}</td>
                 <td>{getFingerprintsCount(u.credentials)}</td>
