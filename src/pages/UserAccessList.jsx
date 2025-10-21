@@ -102,7 +102,7 @@ export function UserAccessList() {
       </div>
     );
 
-    console.log(companyLogs)
+  console.log(companyLogs)
   return (
     <div className="g-background min-vh-100">
       <CustomNavbar />
@@ -210,7 +210,16 @@ export function UserAccessList() {
                 <thead className="table-dark text-center">
                   <tr>
                     <th><FaUser className="me-1" />Usuario</th>
-                    <th><FaBuilding className="me-1" />Zona / Dispositivo</th>
+                    <th><FaMicrochip className="me-1" /> Dispositivo</th>
+                    {role === "SA" && (
+                      <th><FaBuilding className="me-1" /> Empresa</th>
+                    )}<th><FaBolt className="me-1" /> Evento</th>
+                    <th><FaSignInAlt className="me-1 text-success" /> Entrada</th>
+                    <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
+                    <th><FaHourglassHalf className="me-1" /> Duración</th>
+                    <th><FaHardHat className="me-1 text-warning" /> EPP</th>
+                    <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
+                    <th><FaStickyNote className="me-1" /> Observación</th>
                     <th>Acción</th>
                     <th>Fecha y hora</th>
                     <th><FaStickyNote className="me-1" />Observación</th>
@@ -222,9 +231,20 @@ export function UserAccessList() {
                       <tr key={log.id} className="text-center">
                         <td>{log.user?.name || "Desconocido"}</td>
                         <td>{log.device?.name || "N/A"}</td>
-                        <td>{log.action}</td>
-                        <td>{new Date(log.timestamp).toLocaleString()}</td>
+                        {role === "SA" && (
+                          <td>{log.company?.name || "—"}</td>
+                        )}
+                        <td>{log.eventType?.name || "—"}</td>
+                        <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
+                        <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
+                        <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>            <td className={log.correctEpp ? "text-success" : "text-danger"}>
+                          {log.correctEpp ? "Sí" : "No"}
+                        </td>
+                        <td className={log.success ? "text-success" : "text-danger"}>
+                          {log.success ? "✔" : "✖"}
+                        </td>
                         <td>{log.observation || "—"}</td>
+
                       </tr>
                     ))
                   ) : (
