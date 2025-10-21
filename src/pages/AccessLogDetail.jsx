@@ -7,7 +7,6 @@ import {
   Table,
   Spinner,
   Alert,
-  Pagination,
 } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { useParams, useNavigate } from "react-router-dom";
@@ -38,14 +37,13 @@ export function AccessLogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Simulación de rol (ajusta según tu contexto)
   const role = localStorage.getItem("role") || "USER";
 
-  // Estado de paginación
+  // --- Estado de paginación ---
   const [page, setPage] = useState(0);
-  const [size] = useState(5); // 👈 cantidad por página
-  const [sortBy] = useState("entryTime");
-  const [direction] = useState("desc");
+  const size = 5;
+  const sortBy = "entryTime";
+  const direction = "desc";
 
   const { data: accessLog, isLoading, isError } = useGetAccessLogById(id);
   const userId = accessLog?.user?.id;
@@ -53,6 +51,7 @@ export function AccessLogDetail() {
   const {
     data: paginatedAccesses,
     isLoading: isLoadingAccesses,
+    isError: isErrorAccesses,
   } = useGetLogsByUserPaginated(userId, page, size, sortBy, direction);
 
   if (isLoading) {
@@ -74,11 +73,14 @@ export function AccessLogDetail() {
   // Datos paginados
   const accesses = paginatedAccesses?.content || [];
   const totalPages = paginatedAccesses?.totalPages || 1;
+  const isLast = page >= totalPages - 1;
+
+  const handlePrevious = () => page > 0 && setPage(page - 1);
+  const handleNext = () => !isLast && setPage(page + 1);
 
   return (
     <div className="g-background min-vh-100">
       <CustomNavbar />
-
       <Container className="mt-4">
         {/* Botón Atrás */}
         <Row className="mb-3">
@@ -96,7 +98,9 @@ export function AccessLogDetail() {
 
         {/* --- Card principal --- */}
         <Card bg="dark" text="light" className="shadow-lg mb-4">
-          <Card.Header className="text-center fs-4">Detalle del Acceso</Card.Header>
+          <Card.Header className="text-center fs-4">
+            Detalle del Acceso
+          </Card.Header>
           <Card.Body>
             <Row className="mb-3">
               <Col md={6}>
@@ -181,75 +185,114 @@ export function AccessLogDetail() {
                 <div className="text-center py-3">
                   <Spinner animation="border" variant="light" />
                 </div>
+              ) : isErrorAccesses ? (
+                <Alert variant="danger" className="text-center">
+                  Error al cargar los accesos del usuario.
+                </Alert>
               ) : (
                 <>
-                  <Table striped bordered hover variant="dark" responsive>
-                    <thead className="table-dark text-center">
-                      <tr>
-                        <th><FaIdBadge size={14} className="me-1" /> ID</th>
-                        <th><FaSignInAlt size={14} className="me-1 text-success" /> Entrada</th>
-                        <th><FaSignOutAlt size={14} className="me-1 text-danger" /> Salida</th>
-                        <th><FaHourglassHalf size={14} className="me-1" /> Duración</th>
-                        <th><FaBolt size={14} className="me-1" /> Evento</th>
-                        <th><FaMicrochip size={14} className="me-1" /> Dispositivo</th>
-                        <th><FaCheckCircle size={14} className="me-1 text-success" /> Éxito</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {accesses.map((entry) => (
-                        <tr key={entry.id}>
-                          <td>{entry.id}</td>
-                          <td>
-                            {entry.entryTime
-                              ? getDateAndDayFromTimestamp(entry.entryTime)
-                              : "—"}
-                          </td>
-                          <td>
-                            {entry.exitTime
-                              ? getDateAndDayFromTimestamp(entry.exitTime)
-                              : "—"}
-                          </td>
-                          <td>
-                            {entry.durationSeconds
-                              ? formatSecondsToHHMMSS(entry.durationSeconds)
-                              : "—"}
-                          </td>
-                          <td>{entry.eventType?.name || "—"}</td>
-                          <td>{entry.device?.name || "—"}</td>
-                          <td>{entry.success ? "✔" : "✖"}</td>
+                  <div className="table-responsive rounded overflow-hidden shadow">
+                    <Table
+                      striped
+                      bordered
+                      hover
+                      variant="dark"
+                      className="align-middle mb-0"
+                    >
+                      <thead className="table-dark text-center">
+                        <tr>
+                          <th>
+                            <FaIdBadge size={14} className="me-1" /> ID
+                          </th>
+                          <th>
+                            <FaSignInAlt
+                              size={14}
+                              className="me-1 text-success"
+                            />{" "}
+                            Entrada
+                          </th>
+                          <th>
+                            <FaSignOutAlt
+                              size={14}
+                              className="me-1 text-danger"
+                            />{" "}
+                            Salida
+                          </th>
+                          <th>
+                            <FaHourglassHalf size={14} className="me-1" />{" "}
+                            Duración
+                          </th>
+                          <th>
+                            <FaBolt size={14} className="me-1" /> Evento
+                          </th>
+                          <th>
+                            <FaMicrochip size={14} className="me-1" /> Dispositivo
+                          </th>
+                          <th>
+                            <FaCheckCircle
+                              size={14}
+                              className="me-1 text-success"
+                            />{" "}
+                            Éxito
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </thead>
+                      <tbody>
+                        {accesses.length === 0 ? (
+                          <tr>
+                            <td colSpan="7" className="text-center text-secondary py-4">
+                              No hay otros registros de acceso para este usuario.
+                            </td>
+                          </tr>
+                        ) : (
+                          accesses.map((entry) => (
+                            <tr key={entry.id}>
+                              <td>{entry.id}</td>
+                              <td>
+                                {entry.entryTime
+                                  ? getDateAndDayFromTimestamp(entry.entryTime)
+                                  : "—"}
+                              </td>
+                              <td>
+                                {entry.exitTime
+                                  ? getDateAndDayFromTimestamp(entry.exitTime)
+                                  : "—"}
+                              </td>
+                              <td>
+                                {entry.durationSeconds
+                                  ? formatSecondsToHHMMSS(entry.durationSeconds)
+                                  : "—"}
+                              </td>
+                              <td>{entry.eventType?.name || "—"}</td>
+                              <td>{entry.device?.name || "—"}</td>
+                              <td>{entry.success ? "✔" : "✖"}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
 
-                  {/* --- Controles de paginación --- */}
-                  <Pagination className="justify-content-center mt-3">
-                    <Pagination.First
+                  {/* --- Controles de paginación (estilo simple) --- */}
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <Button
+                      variant="outline-light"
+                      onClick={handlePrevious}
                       disabled={page === 0}
-                      onClick={() => setPage(0)}
-                    />
-                    <Pagination.Prev
-                      disabled={page === 0}
-                      onClick={() => setPage((prev) => prev - 1)}
-                    />
-                    {[...Array(totalPages)].map((_, index) => (
-                      <Pagination.Item
-                        key={index}
-                        active={index === page}
-                        onClick={() => setPage(index)}
-                      >
-                        {index + 1}
-                      </Pagination.Item>
-                    ))}
-                    <Pagination.Next
-                      disabled={page === totalPages - 1}
-                      onClick={() => setPage((prev) => prev + 1)}
-                    />
-                    <Pagination.Last
-                      disabled={page === totalPages - 1}
-                      onClick={() => setPage(totalPages - 1)}
-                    />
-                  </Pagination>
+                    >
+                      ← Anterior
+                    </Button>
+                    <span className="text-light">
+                      Página {page + 1} de {totalPages}
+                    </span>
+                    <Button
+                      variant="outline-light"
+                      onClick={handleNext}
+                      disabled={isLast}
+                    >
+                      Siguiente →
+                    </Button>
+                  </div>
                 </>
               )}
             </Card.Body>
