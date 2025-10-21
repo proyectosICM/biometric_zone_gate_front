@@ -39,7 +39,7 @@ export function UserAccessList() {
   const role = localStorage.getItem("bzg_role");
   const navigate = useNavigate();
 
-  // Paginación de usuarios
+  // Paginación de usuarios 
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 

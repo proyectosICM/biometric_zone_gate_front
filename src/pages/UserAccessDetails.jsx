@@ -59,11 +59,17 @@ export function UserAccessDetails() {
           <Table striped bordered hover variant="dark" className="rounded shadow">
             <thead>
               <tr>
-                <th>ID Log</th>
-                <th>Zona / Dispositivo</th>
-                <th>Acción</th>
-                <th>Fecha / Hora</th>
-                <th>Observación</th>
+                <th><FaUser className="me-1" />Usuario</th>
+                <th><FaMicrochip className="me-1" /> Dispositivo</th>
+                {role === "SA" && (
+                  <th><FaBuilding className="me-1" /> Empresa</th>
+                )}<th><FaBolt className="me-1" /> Evento</th>
+                <th><FaSignInAlt className="me-1 text-success" /> Entrada</th>
+                <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
+                <th><FaHourglassHalf className="me-1" /> Duración</th>
+                <th><FaHardHat className="me-1 text-warning" /> EPP</th>
+                <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
+                <th><FaStickyNote className="me-1" /> Observación</th>
               </tr>
             </thead>
             <tbody>
