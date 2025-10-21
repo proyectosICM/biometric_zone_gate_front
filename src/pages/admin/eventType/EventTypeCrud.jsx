@@ -199,7 +199,7 @@ export function EventTypeCrud() {
 
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h3 className="text-light">Tipos de Evento Registrados</h3>
-          <div className="d-flex gap-2">
+     {/*     <div className="d-flex gap-2">
             <Button
               variant="outline-success"
               onClick={() => {
@@ -213,7 +213,7 @@ export function EventTypeCrud() {
             <Button variant="outline-danger" onClick={handleClearAll}>
               Eliminar Todo
             </Button>
-          </div>
+          </div>*/}
         </div>
 
         <EventTypeTable

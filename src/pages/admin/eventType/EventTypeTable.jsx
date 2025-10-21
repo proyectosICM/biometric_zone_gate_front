@@ -35,13 +35,13 @@ export function EventTypeTable({ eventTypes, onEdit, onDelete }) {
                   >
                     Editar
                   </Button>
-                  <Button
+           {/*       <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => onDelete(e.id)}
                   >
                     Eliminar
-                  </Button>
+                  </Button>*/}
                 </td>
               </tr>
             ))
