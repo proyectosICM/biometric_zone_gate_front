@@ -165,14 +165,15 @@ export function UserAccessDetails() {
           </>
         )}
 
-        {/* Botón de descarga */}
+        {/* Botón de descarga 
         <div className="d-flex justify-content-end mt-4">
           <Button variant="light" onClick={() => setShowDownloadModal(true)}>
             <FaDownload className="me-2" />
             Descargar registros en Excel
           </Button>
-        </div>
+        </div>      */}
       </Container>
+
 
       {/* Modal de descarga */}
       <Modal

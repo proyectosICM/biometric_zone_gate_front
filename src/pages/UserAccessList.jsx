@@ -288,7 +288,7 @@ export function UserAccessList() {
           </>
         )}
 
-        {/* BOTÓN DESCARGA */}
+        {/* BOTÓN DESCARGA 
         <div className="d-flex justify-content-end mt-4">
           <Button
             variant="outline-light"
@@ -298,7 +298,7 @@ export function UserAccessList() {
             <FaDownload className="me-2" />
             Descargar registro completo en Excel
           </Button>
-        </div>
+        </div>*/}
       </Container>
 
       {/* MODAL DESCARGA */}
