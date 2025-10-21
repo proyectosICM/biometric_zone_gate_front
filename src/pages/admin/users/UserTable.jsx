@@ -20,6 +20,21 @@ export function UserTable({ users, onEdit, onDelete }) {
     );
   };
 
+  // 👇 Funciones auxiliares
+  const getPasswordDevice = (credentials = []) => {
+    const cred = credentials.find(c => c.type === "PASSWORD");
+    return cred ? cred.record : "-";
+  };
+
+  const getCardRfid = (credentials = []) => {
+    const cred = credentials.find(c => c.type === "CARD");
+    return cred ? cred.record : "-";
+  };
+
+  const getFingerprintsCount = (credentials = []) => {
+    return credentials.filter(c => c.type === "FINGERPRINT").length;
+  };
+
   return (
     <div className="table-responsive">
       <Table striped bordered hover variant="dark" className="align-middle">
@@ -31,6 +46,9 @@ export function UserTable({ users, onEdit, onDelete }) {
             <th>Usuario</th>
             <th>Rol</th>
             <th>Empresa</th>
+            <th>Password Device</th>
+            <th>Card RFID</th>
+            <th>Huellas</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -45,6 +63,9 @@ export function UserTable({ users, onEdit, onDelete }) {
                 <td>{u.username || "Sin usuario web"}</td>
                 <td>{renderRole(u.adminLevel)}</td>
                 <td>{u.company?.name || "Sin empresa"}</td>
+                <td>{getPasswordDevice(u.credentials)}</td>
+                <td>{getCardRfid(u.credentials)}</td>
+                <td>{getFingerprintsCount(u.credentials)}</td>
                 <td>{renderStatus(u.enabled)}</td>
                 <td>
                   <Button
