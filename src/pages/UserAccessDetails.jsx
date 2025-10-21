@@ -95,10 +95,20 @@ export function UserAccessDetails() {
               {userLogs && userLogs.length > 0 ? (
                 userLogs.map((log) => (
                   <tr key={log.id}>
-                    <td>{log.id}</td>
-                    <td>{log.device?.name || "Desconocido"}</td>
-                    <td>{log.action}</td>
-                    <td>{new Date(log.timestamp).toLocaleString()}</td>
+                    <td>{log.user?.name || "Desconocido"}</td>
+                    <td>{log.device?.name || "N/A"}</td>
+                    {role === "SA" && (
+                      <td>{log.company?.name || "—"}</td>
+                    )}
+                    <td>{log.eventType?.name || "—"}</td>
+                    <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
+                    <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
+                    <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>            <td className={log.correctEpp ? "text-success" : "text-danger"}>
+                      {log.correctEpp ? "Sí" : "No"}
+                    </td>
+                    <td className={log.success ? "text-success" : "text-danger"}>
+                      {log.success ? "✔" : "✖"}
+                    </td>
                     <td>{log.observation || "-"}</td>
                   </tr>
                 ))
