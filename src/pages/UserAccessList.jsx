@@ -145,7 +145,7 @@ export function UserAccessList() {
                   <tr key={user.id} className="text-center">
                     <td>{user.id}</td>
                     <td>{user.name}</td>
-                    <td>{user.username}</td>
+                    <td>{user.username || "Sin usuario web"}</td>
                     {role === "SA" && (
                       <td>{user.company?.name || "—"}</td>
                     )}
