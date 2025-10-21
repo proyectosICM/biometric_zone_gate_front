@@ -3,14 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Table, Container, Button, Row, Col, Modal, Spinner } from "react-bootstrap";
 import { CustomNavbar } from "../components/CustomNavbar";
 import {
-  FaUsers,
   FaUser,
   FaBuilding,
-  FaEye,
-  FaDownload,
-  FaStickyNote,
-  FaTools,
-  FaIdBadge,
   FaSignInAlt,
   FaSignOutAlt,
   FaHourglassHalf,
@@ -18,9 +12,11 @@ import {
   FaCheckCircle,
   FaMicrochip,
   FaBolt,
+  FaStickyNote,
   FaArrowLeft,
+  FaDownload,
 } from "react-icons/fa";
-import { useGetLogsByUser } from "../api/hooks/useAccessLogs";
+import { useGetLogsByUserPaginated } from "../api/hooks/useAccessLogs"; // ✅ nuevo hook paginado
 import { formatSecondsToHHMMSS, getDateAndDayFromTimestamp } from "../utils/formatDate";
 
 export function UserAccessDetails() {
@@ -28,17 +24,31 @@ export function UserAccessDetails() {
   const { userId } = useParams();
   const companyId = localStorage.getItem("bzg_companyId");
   const role = localStorage.getItem("bzg_role");
+
+  // Paginación
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
+
+  // Modal de descarga
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  const { data: userLogs, isLoading, isError } = useGetLogsByUser(userId);
+  // Hook de datos paginados
+  const {
+    data: logsData,
+    isLoading,
+    isError,
+  } = useGetLogsByUserPaginated(userId, page, size, "createdAt", "desc");
+
+  const userLogs = logsData?.content || [];
+  const totalPages = logsData?.totalPages || 1;
 
   const handleDownloadClick = (range) => {
-    alert(`Descargando registros: ${range}`);
+    alert(`Descargando registros (${range})`);
     setShowDownloadModal(false);
   };
 
   return (
-    <div className="g-background">
+    <div className="g-background min-vh-100">
       <CustomNavbar />
       <Container className="mt-4">
         <Row className="mb-3">
@@ -54,7 +64,9 @@ export function UserAccessDetails() {
           </Col>
         </Row>
 
-        <h2 className="text-white mb-3">Historial de accesos del usuario #{userId}</h2>
+        <h2 className="text-white mb-3">
+          Historial de accesos del usuario #{userId}
+        </h2>
         <p className="text-light mb-4">
           Lista completa de accesos registrados para este usuario.
         </p>
@@ -74,58 +86,89 @@ export function UserAccessDetails() {
           </div>
         )}
 
-        {/* Tabla de logs */}
+        {/* Tabla paginada */}
         {!isLoading && !isError && (
-          <Table striped bordered hover variant="dark" className="rounded shadow">
-            <thead>
-              <tr>
-                <th><FaUser className="me-1" />Usuario</th>
-                <th><FaMicrochip className="me-1" /> Dispositivo</th>
-                {role === "SA" && (
-                  <th><FaBuilding className="me-1" /> Empresa</th>
-                )}<th><FaBolt className="me-1" /> Evento</th>
-                <th><FaSignInAlt className="me-1 text-success" /> Entrada</th>
-                <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
-                <th><FaHourglassHalf className="me-1" /> Duración</th>
-                <th><FaHardHat className="me-1 text-warning" /> EPP</th>
-                <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
-                <th><FaStickyNote className="me-1" /> Observación</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userLogs && userLogs.length > 0 ? (
-                userLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td>{log.user?.name || "Desconocido"}</td>
-                    <td>{log.device?.name || "N/A"}</td>
+          <>
+            <div className="table-responsive rounded overflow-hidden shadow">
+              <Table striped bordered hover variant="dark" className="align-middle mb-0">
+                <thead className="table-dark text-center">
+                  <tr>
+                    <th><FaUser className="me-1" />Usuario</th>
+                    <th><FaMicrochip className="me-1" />Dispositivo</th>
                     {role === "SA" && (
-                      <td>{log.company?.name || "—"}</td>
+                      <th><FaBuilding className="me-1" />Empresa</th>
                     )}
-                    <td>{log.eventType?.name || "—"}</td>
-                    <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
-                    <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
-                    <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>            <td className={log.correctEpp ? "text-success" : "text-danger"}>
-                      {log.correctEpp ? "Sí" : "No"}
-                    </td>
-                    <td className={log.success ? "text-success" : "text-danger"}>
-                      {log.success ? "✔" : "✖"}
-                    </td>
-                    <td>{log.observation || "-"}</td>
+                    <th><FaBolt className="me-1" />Evento</th>
+                    <th><FaSignInAlt className="me-1 text-success" />Entrada</th>
+                    <th><FaSignOutAlt className="me-1 text-danger" />Salida</th>
+                    <th><FaHourglassHalf className="me-1" />Duración</th>
+                    <th><FaHardHat className="me-1 text-warning" />EPP</th>
+                    <th><FaCheckCircle className="me-1 text-success" />Éxito</th>
+                    <th><FaStickyNote className="me-1" />Observación</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center text-muted">
-                    No hay registros disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
+                </thead>
+                <tbody>
+                  {userLogs.length > 0 ? (
+                    userLogs.map((log) => (
+                      <tr key={log.id} className="text-center">
+                        <td>{log.user?.name || "Desconocido"}</td>
+                        <td>{log.device?.name || "N/A"}</td>
+                        {role === "SA" && (
+                          <td>{log.company?.name || "—"}</td>
+                        )}
+                        <td>{log.eventType?.name || "—"}</td>
+                        <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
+                        <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
+                        <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>
+                        <td className={log.correctEpp ? "text-success" : "text-danger"}>
+                          {log.correctEpp ? "Sí" : "No"}
+                        </td>
+                        <td className={log.success ? "text-success" : "text-danger"}>
+                          {log.success ? "✔" : "✖"}
+                        </td>
+                        <td>{log.observation || "-"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={role === "SA" ? 10 : 9} className="text-center text-secondary py-4">
+                        No hay registros disponibles.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
+
+            {/* Paginación */}
+            <div className="d-flex justify-content-between align-items-center text-light mt-3">
+              <Button
+                variant="outline-light"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                ← Anterior
+              </Button>
+              <span>
+                Página {page + 1} de {totalPages}
+              </span>
+              <Button
+                variant="outline-light"
+                size="sm"
+                disabled={page + 1 >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Siguiente →
+              </Button>
+            </div>
+          </>
         )}
 
-        <div className="d-flex justify-content-end mt-3">
+        {/* Botón de descarga */}
+        <div className="d-flex justify-content-end mt-4">
           <Button variant="light" onClick={() => setShowDownloadModal(true)}>
+            <FaDownload className="me-2" />
             Descargar registros en Excel
           </Button>
         </div>
