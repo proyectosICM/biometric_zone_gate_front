@@ -1,5 +1,7 @@
 import { Button, Table } from "react-bootstrap";
 import { useSyncDeviceTimeCustom, useSyncDeviceTimeNow, useCleanAdmins, useCleanDeviceLogs } from "../../../api/hooks/useDevice";
+import Swal from "sweetalert2";
+import { useState } from "react";
 
 export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, onOpenDoor }) {
     const role = localStorage.getItem("bzg_role");
