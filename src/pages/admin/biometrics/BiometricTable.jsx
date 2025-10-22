@@ -1,4 +1,4 @@
-import { Button, Table } from "react-bootstrap";
+import { Button, Col, Modal, Row, Table } from "react-bootstrap";
 import { useSyncDeviceTimeCustom, useSyncDeviceTimeNow, useCleanAdmins, useCleanDeviceLogs } from "../../../api/hooks/useDevice";
 import Swal from "sweetalert2";
 import { useState } from "react";
@@ -132,6 +132,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                     ))}
                 </tbody>
             </Table>
+
             {/* MODAL FUNCIONES AVANZADAS */}
             <Modal
                 show={showAdvancedModal}
