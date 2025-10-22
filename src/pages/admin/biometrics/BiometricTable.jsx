@@ -1,6 +1,65 @@
 import { Button, Table } from "react-bootstrap";
+import { useSyncDeviceTimeCustom, useSyncDeviceTimeNow, useCleanAdmins, useCleanDeviceLogs } from "../../../api/hooks/useDevice";
 
 export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, onOpenDoor }) {
+    const role = localStorage.getItem("bzg_role");
+
+
+    const [showAdvancedModal, setShowAdvancedModal] = useState(false);
+    const [selectedDevice, setSelectedDevice] = useState(null);
+    // Hooks de funciones avanzadas
+    const syncTimeNow = useSyncDeviceTimeNow();
+    const syncTimeCustom = useSyncDeviceTimeCustom();
+    const cleanAdmins = useCleanAdmins();
+    const cleanLogs = useCleanDeviceLogs();
+
+    const handleAction = async (action, id, extra = null) => {
+        try {
+            if (action === "syncNow") await syncTimeNow.mutateAsync(id);
+            if (action === "syncCustom") await syncTimeCustom.mutateAsync({ id, datetime: extra });
+            if (action === "cleanAdmins") await cleanAdmins.mutateAsync(id);
+            if (action === "cleanLogs") await cleanLogs.mutateAsync(id);
+
+            Swal.fire({
+                title: "Éxito",
+                text: "Acción ejecutada correctamente",
+                icon: "success",
+                background: "#212529",
+                color: "#fff",
+                confirmButtonColor: "#198754",
+            });
+        } catch (error) {
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo ejecutar la acción",
+                icon: "error",
+                background: "#212529",
+                color: "#fff",
+                confirmButtonColor: "#d33",
+            });
+        }
+    };
+
+    const handleCustomTime = async () => {
+        const { value: datetime } = await Swal.fire({
+            title: "Asignar hora personalizada",
+            html: `
+        <input type="datetime-local" id="datetime" class="swal2-input" />
+      `,
+            background: "#212529",
+            color: "#fff",
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: "Asignar",
+            cancelButtonText: "Cancelar",
+            preConfirm: () => document.getElementById("datetime").value,
+        });
+
+        if (datetime) {
+            await handleAction("syncCustom", selectedDevice.id, datetime);
+        }
+    };
+
     return (
         <div className="table-responsive">
             <Table striped bordered hover variant="dark">
@@ -52,6 +111,19 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                                 >
                                     Modificar lista de usuarios permitidos
                                 </Button>
+
+                                {role === "SA" && (
+                                    <Button
+                                        variant="warning"
+                                        size="sm"
+                                        onClick={() => {
+                                            setSelectedDevice(b);
+                                            setShowAdvancedModal(true);
+                                        }}
+                                    >
+                                        Funciones avanzadas
+                                    </Button>
+                                )}
                             </td>
                         </tr>
                     ))}

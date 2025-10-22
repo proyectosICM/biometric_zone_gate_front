@@ -320,7 +320,7 @@ export function UserAccessList() {
                 </Button>
               </Col>
             ))}
-          </Row>
+          </Row> 
         </Modal.Body>
       </Modal>
     </div>
