@@ -7,7 +7,7 @@ import { DeviceInfoCard } from "../components/DeviceInfoCard";
 import { AllowedUsersCard } from "../components/AllowedUsersCard";
 import { useGetDeviceById } from "../api/hooks/useDevice";
 import { useGetByDeviceIdAndEnabledTrue } from "../api/hooks/useDeviceUserAccess";
-
+ 
 export function DeviceConfiguration() {
   const { deviceId } = useParams();
   const navigate = useNavigate();

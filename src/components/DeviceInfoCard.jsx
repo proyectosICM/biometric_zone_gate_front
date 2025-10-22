@@ -12,7 +12,7 @@ export function DeviceInfoCard({ deviceId }) {
 
   // Copiar datos cuando cambien
   useEffect(() => {
-    if (deviceInfo) {
+    if (deviceInfo) { 
       setEditedDevice({ ...deviceInfo });
     }
   }, [deviceInfo]);
@@ -90,18 +90,19 @@ export function DeviceInfoCard({ deviceId }) {
               <strong>Nombre:</strong> {deviceInfo.name}
             </Col>
             <Col md={6}>
-              <strong>Compañía:</strong> {deviceInfo.company?.name || "—"}
+              <strong>Empresa:</strong> {deviceInfo.company?.name || "—"}
             </Col>
           </Row>
 
-          <Row className="mb-3">
+
+  { /*       <Row className="mb-3">
             <Col md={6}>
               <strong>Host:</strong> {deviceInfo.host}
             </Col>
             <Col md={6}>
               <strong>Puerto:</strong> {deviceInfo.port}
             </Col>
-          </Row>
+          </Row>*/}
 
           <Row className="mb-3">
             <Col md={6}>
@@ -111,7 +112,7 @@ export function DeviceInfoCard({ deviceId }) {
               <strong>Volumen:</strong> {deviceInfo.volume}
             </Col>
           </Row>
-
+{/*
           <Row className="mb-3">
             <Col md={6}>
               <strong>Anti-passback:</strong> {deviceInfo.antiPassback}
@@ -147,7 +148,7 @@ export function DeviceInfoCard({ deviceId }) {
             <Col md={12}>
               <strong>Log Hint:</strong> {deviceInfo.logHint}
             </Col>
-          </Row>
+          </Row>*/}
 
           <div className="text-end mt-4">
             <Button variant="outline-light" onClick={() => setShowModal(true)}>
