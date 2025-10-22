@@ -109,6 +109,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                                 <Button
                                     variant="info"
                                     size="sm"
+                                    className="me-2"
                                     onClick={() => onManageUsers(b.id)}
                                 >
                                     Modificar lista de usuarios permitidos
@@ -131,6 +132,61 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                     ))}
                 </tbody>
             </Table>
+            {/* MODAL FUNCIONES AVANZADAS */}
+            <Modal
+                show={showAdvancedModal}
+                onHide={() => setShowAdvancedModal(false)}
+                centered
+            >
+                <Modal.Header closeButton className="bg-dark text-light border-secondary">
+                    <Modal.Title>Funciones avanzadas - {selectedDevice?.name}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-light">
+                    <Row className="text-center">
+                        <Col xs={12} className="mb-3">
+                            <Button
+                                variant="outline-light"
+                                className="w-100 p-2"
+                                onClick={() => handleAction("syncNow", selectedDevice.id)}
+                            >
+                                Asignar hora actual al dispositivo
+                            </Button>
+                        </Col>
+
+                        <Col xs={12} className="mb-3">
+                            <Button
+                                variant="outline-light"
+                                className="w-100 p-2"
+                                onClick={handleCustomTime}
+                            >
+                                Asignar hora personalizada
+                            </Button>
+                        </Col>
+
+                        <Col xs={12} className="mb-3">
+                            <Button
+                                variant="outline-danger"
+                                className="w-100 p-2"
+                                onClick={() => handleAction("cleanAdmins", selectedDevice.id)}
+                            >
+                                Limpiar todos los administradores
+                            </Button>
+                        </Col>
+
+                        <Col xs={12} className="mb-3">
+                            <Button
+                                variant="outline-danger"
+                                className="w-100 p-2"
+                                onClick={() => handleAction("cleanLogs", selectedDevice.id)}
+                            >
+                                Limpiar logs del dispositivo
+                            </Button>
+                        </Col>
+
+                        {/* Aquí podrás agregar más funciones en el futuro */}
+                    </Row>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 }
