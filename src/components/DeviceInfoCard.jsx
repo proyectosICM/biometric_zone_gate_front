@@ -12,7 +12,7 @@ export function DeviceInfoCard({ deviceId }) {
 
   // Copiar datos cuando cambien
   useEffect(() => {
-    if (deviceInfo) { 
+    if (deviceInfo) {
       setEditedDevice({ ...deviceInfo });
     }
   }, [deviceInfo]);
@@ -94,16 +94,6 @@ export function DeviceInfoCard({ deviceId }) {
             </Col>
           </Row>
 
-
-  { /*       <Row className="mb-3">
-            <Col md={6}>
-              <strong>Host:</strong> {deviceInfo.host}
-            </Col>
-            <Col md={6}>
-              <strong>Puerto:</strong> {deviceInfo.port}
-            </Col>
-          </Row>*/}
-
           <Row className="mb-3">
             <Col md={6}>
               <strong>Idioma:</strong> {deviceInfo.language}
@@ -112,43 +102,6 @@ export function DeviceInfoCard({ deviceId }) {
               <strong>Volumen:</strong> {deviceInfo.volume}
             </Col>
           </Row>
-{/*
-          <Row className="mb-3">
-            <Col md={6}>
-              <strong>Anti-passback:</strong> {deviceInfo.antiPassback}
-            </Col>
-            <Col md={6}>
-              <strong>Modo de verificación:</strong>{" "}
-              {deviceInfo.verificationMode}
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col md={6}>
-              <strong>Sleep habilitado:</strong>{" "}
-              {deviceInfo.sleepEnabled ? "Sí" : "No"}
-            </Col>
-            <Col md={6}>
-              <strong>Push habilitado:</strong>{" "}
-              {deviceInfo.pushEnabled ? "Sí" : "No"}
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col md={6}>
-              <strong>Usuarios registrados:</strong> {deviceInfo.userFpNum}
-            </Col>
-            <Col md={6}>
-              <strong>Tiempo de reverificación:</strong>{" "}
-              {deviceInfo.reverifyTime} min
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col md={12}>
-              <strong>Log Hint:</strong> {deviceInfo.logHint}
-            </Col>
-          </Row>*/}
 
           <div className="text-end mt-4">
             <Button variant="outline-light" onClick={() => setShowModal(true)}>
@@ -160,7 +113,10 @@ export function DeviceInfoCard({ deviceId }) {
 
       {/* -------- MODAL DE EDICIÓN -------- */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+        <Modal.Header
+          closeButton
+          className="bg-dark text-light border-secondary"
+        >
           <Modal.Title>Editar Configuración del Dispositivo</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
@@ -174,27 +130,6 @@ export function DeviceInfoCard({ deviceId }) {
                 onChange={(e) => handleChange("name", e.target.value)}
               />
             </Form.Group>
-
-            <Row className="mb-3">
-              <Col>
-                <Form.Label>Host</Form.Label>
-                <Form.Control
-                  type="text"
-                  className="bg-secondary text-light border-0"
-                  value={editedDevice.host || ""}
-                  onChange={(e) => handleChange("host", e.target.value)}
-                />
-              </Col>
-              <Col>
-                <Form.Label>Puerto</Form.Label>
-                <Form.Control
-                  type="text"
-                  className="bg-secondary text-light border-0"
-                  value={editedDevice.port || ""}
-                  onChange={(e) => handleChange("port", e.target.value)}
-                />
-              </Col>
-            </Row>
 
             <Row className="mb-3">
               <Col>
@@ -221,79 +156,14 @@ export function DeviceInfoCard({ deviceId }) {
               </Col>
             </Row>
 
-            <Row className="mb-3">
-              <Col>
-                <Form.Label>Anti-passback</Form.Label>
-                <Form.Control
-                  type="number"
-                  className="bg-secondary text-light border-0"
-                  value={editedDevice.antiPassback ?? 0}
-                  onChange={(e) =>
-                    handleChange("antiPassback", Number(e.target.value))
-                  }
-                />
-              </Col>
-              <Col>
-                <Form.Label>Modo de verificación</Form.Label>
-                <Form.Control
-                  type="number"
-                  className="bg-secondary text-light border-0"
-                  value={editedDevice.verificationMode ?? 0}
-                  onChange={(e) =>
-                    handleChange("verificationMode", Number(e.target.value))
-                  }
-                />
-              </Col>
-            </Row>
-
             <Form.Group className="mb-3">
-              <Form.Label>Sleep habilitado</Form.Label>
-              <Form.Select
-                className="bg-secondary text-light border-0"
-                value={editedDevice.sleepEnabled ? "true" : "false"}
-                onChange={(e) =>
-                  handleChange("sleepEnabled", e.target.value === "true")
-                }
-              >
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Push habilitado</Form.Label>
-              <Form.Select
-                className="bg-secondary text-light border-0"
-                value={editedDevice.pushEnabled ? "true" : "false"}
-                onChange={(e) =>
-                  handleChange("pushEnabled", e.target.value === "true")
-                }
-              >
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Tiempo de reverificación (min)</Form.Label>
+              <Form.Label>Cantidad de Huellas de Usuario</Form.Label>
               <Form.Control
                 type="number"
                 className="bg-secondary text-light border-0"
-                value={editedDevice.reverifyTime ?? 0}
+                value={editedDevice.userfpnum ?? 0}
                 onChange={(e) =>
-                  handleChange("reverifyTime", Number(e.target.value))
-                }
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Log Hint</Form.Label>
-              <Form.Control
-                type="number"
-                className="bg-secondary text-light border-0"
-                value={editedDevice.logHint ?? 0}
-                onChange={(e) =>
-                  handleChange("logHint", Number(e.target.value))
+                  handleChange("userfpnum", Number(e.target.value))
                 }
               />
             </Form.Group>
