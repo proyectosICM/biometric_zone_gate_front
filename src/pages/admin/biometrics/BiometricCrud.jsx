@@ -13,6 +13,7 @@ import {
   useCreateDevice,
   useUpdateDevice,
   useDeleteDevice,
+  useOpenDoor,
 } from "../../../api/hooks/useDevice";
 
 import { useGetAllCompanies } from "../../../api/hooks/useCompany";
@@ -27,6 +28,8 @@ export function BiometricCrud() {
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("name");
   const [direction, setDirection] = useState("asc");
+
+  const openDoor = useOpenDoor();
 
   // Queries
   const allDevicesQuery = useGetAllDevicesPaginated(page, size, sortBy, direction);
@@ -52,6 +55,43 @@ export function BiometricCrud() {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) setPage(newPage);
+  };
+
+  const handleOpenDoor = async (id) => {
+    Swal.fire({
+      title: "¿Abrir puerta?",
+      text: "Esto enviará la señal de apertura al dispositivo.",
+      icon: "question",
+      showCancelButton: true,
+      background: "#212529",
+      color: "#fff",
+      confirmButtonColor: "#198754",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Sí, abrir",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await openDoor.mutateAsync(id);
+          Swal.fire({
+            title: "Puerta abierta",
+            text: "La puerta se abrió correctamente.",
+            icon: "success",
+            background: "#212529",
+            color: "#fff",
+            confirmButtonColor: "#198754",
+          });
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: "No se pudo abrir la puerta.",
+            icon: "error",
+            background: "#212529",
+            color: "#fff",
+            confirmButtonColor: "#d33",
+          });
+        }
+      }
+    });
   };
 
   const handleSave = async (deviceData) => {
@@ -203,6 +243,7 @@ export function BiometricCrud() {
           }}
           onDelete={handleDelete}
           onManageUsers={handleManageUsers}
+          onOpenDoor={handleOpenDoor}
         />
 
         <div className="d-flex justify-content-center mt-3">

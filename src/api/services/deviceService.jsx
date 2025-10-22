@@ -150,3 +150,74 @@ export const listByCompanyPaginated = async (companyId, page = 0, size = 10, sor
     throw error;
   }
 };
+
+export const cleanAdmins = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/clean-admins`);
+    return data;
+  } catch (error) {
+    console.error("Error cleaning admins:", error);
+    throw error;
+  }
+};
+
+export const syncDeviceTimeNow = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/settime`);
+    return data;
+  } catch (error) {
+    console.error("Error syncing device time (now):", error);
+    throw error;
+  }
+};
+
+export const syncDeviceTimeCustom = async (id, datetime) => {
+  try {
+    const params = new URLSearchParams({ datetime }).toString();
+    const { data } = await api.post(`${endpoint}/${id}/settime/custom?${params}`);
+    return data;
+  } catch (error) {
+    console.error("Error syncing device time (custom):", error);
+    throw error;
+  }
+};
+
+export const openDoor = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/open-door`);
+    return data;
+  } catch (error) {
+    console.error("Error opening door:", error);
+    throw error;
+  }
+};
+
+export const getDeviceInfo = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/get-devinfo`);
+    return data;
+  } catch (error) {
+    console.error("Error getting device info:", error);
+    throw error;
+  }
+};
+
+export const cleanDeviceLogs = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/clean-logs`);
+    return data;
+  } catch (error) {
+    console.error("Error cleaning device logs:", error);
+    throw error;
+  }
+};
+
+export const getNewLogs = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/get-newlog`);
+    return data;
+  } catch (error) {
+    console.error("Error getting new logs:", error);
+    throw error;
+  }
+};

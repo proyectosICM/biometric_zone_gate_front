@@ -9,7 +9,7 @@ export function BiometricModal({ show, onHide, biometric, onSave, role, companie
         companyId: role === "SA" ? "" : 1,
     });
 
-    useEffect(() => {
+    useEffect(() => { 
         if (biometric) {
             setFormData({
                 id: biometric.id,

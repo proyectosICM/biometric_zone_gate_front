@@ -123,7 +123,7 @@ export const useDeleteUser = () => {
     mutationFn: ({ id, userId }) => deviceService.deleteUser(id, userId),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries(["device", id]);
-    },
+    }, 
   });
 };
 
@@ -135,5 +135,69 @@ export const useClearAllUsers = () => {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries(["device", id]);
     },
+  });
+};
+
+// Limpiar administradores
+export const useCleanAdmins = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.cleanAdmins,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Sincronizar hora actual
+export const useSyncDeviceTimeNow = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.syncDeviceTimeNow,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Sincronizar hora personalizada
+export const useSyncDeviceTimeCustom = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, datetime }) =>
+      deviceService.syncDeviceTimeCustom(id, datetime),
+    onSuccess: (_, { id }) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Abrir puerta
+export const useOpenDoor = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.openDoor,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Obtener info del dispositivo
+export const useGetDeviceInfo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.getDeviceInfo,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Limpiar logs
+export const useCleanDeviceLogs = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.cleanDeviceLogs,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
+  });
+};
+
+// Obtener nuevos logs
+export const useGetNewLogs = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.getNewLogs,
+    onSuccess: (_, id) => queryClient.invalidateQueries(["device", id]),
   });
 };
