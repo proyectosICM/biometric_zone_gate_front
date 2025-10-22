@@ -16,7 +16,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                 <tbody>
                     {biometrics.map((b, index) => (
                         <tr key={b.id}>
-                            <td>{index + 1}</td>
+                            <td>{b.id}</td>
                             <td>{b.sn}</td>
                             <td>{b.name}</td>
                             <td>{b.company?.name || "—"}</td>
