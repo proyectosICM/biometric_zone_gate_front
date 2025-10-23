@@ -26,6 +26,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
             if (action === "syncCustom") await syncTimeCustom.mutateAsync({ id, datetime: extra });
             if (action === "cleanAdmins") await cleanAdmins.mutateAsync(id);
             if (action === "cleanLogs") await cleanLogs.mutateAsync(id);
+            if (action === "reboot") await rebootDevice.mutateAsync(id);
             if (action === "initializeSystem") await initializeSystem.mutateAsync(id);
 
             Swal.fire({
@@ -198,7 +199,15 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                             </Button>
                         </Col>
 
-                        {/* Aquí podrás agregar más funciones en el futuro */}
+                        <Col xs={12} className="mb-3">
+                            <Button
+                                variant="outline-danger"
+                                className="w-100 p-2"
+                                onClick={() => handleAction("initializeSystem", selectedDevice.id)}
+                            >
+                                Restablecer usuarios y logs del dispositivo
+                            </Button>
+                        </Col>
                     </Row>
                 </Modal.Body>
             </Modal>
