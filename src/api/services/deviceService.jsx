@@ -151,12 +151,32 @@ export const listByCompanyPaginated = async (companyId, page = 0, size = 10, sor
   }
 };
 
+export const initializeSystem = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/initialize-system`);
+    return data;
+  } catch (error) {
+    console.error("Error cleaning admins:", error);
+    throw error;
+  }
+};
+
+export const reboot = async (id) => {
+  try {
+    const { data } = await api.post(`${endpoint}/${id}/reboot`);
+    return data;
+  } catch (error) {
+    console.error("Error cleaning admins:", error);
+    throw error;
+  }
+};
+
 export const cleanAdmins = async (id) => {
   try {
     const { data } = await api.post(`${endpoint}/${id}/clean-admins`);
     return data;
   } catch (error) {
-    console.error("Error cleaning admins:", error);
+    console.error("Error initializing system:", error);
     throw error;
   }
 };
@@ -166,7 +186,7 @@ export const syncDeviceTimeNow = async (id) => {
     const { data } = await api.post(`${endpoint}/${id}/settime`);
     return data;
   } catch (error) {
-    console.error("Error syncing device time (now):", error);
+    console.error("Error rebooting device:", error);
     throw error;
   }
 };

@@ -1,5 +1,8 @@
 import { Button, Col, Modal, Row, Table } from "react-bootstrap";
-import { useSyncDeviceTimeCustom, useSyncDeviceTimeNow, useCleanAdmins, useCleanDeviceLogs } from "../../../api/hooks/useDevice";
+import {
+    useSyncDeviceTimeCustom, useSyncDeviceTimeNow, useCleanAdmins, useCleanDeviceLogs, useRebootDevice,
+    useInitializeSystem
+} from "../../../api/hooks/useDevice";
 import Swal from "sweetalert2";
 import { useState } from "react";
 
@@ -14,6 +17,8 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
     const syncTimeCustom = useSyncDeviceTimeCustom();
     const cleanAdmins = useCleanAdmins();
     const cleanLogs = useCleanDeviceLogs();
+    const rebootDevice = useRebootDevice();
+    const initializeSystem = useInitializeSystem();
 
     const handleAction = async (action, id, extra = null) => {
         try {
@@ -21,6 +26,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
             if (action === "syncCustom") await syncTimeCustom.mutateAsync({ id, datetime: extra });
             if (action === "cleanAdmins") await cleanAdmins.mutateAsync(id);
             if (action === "cleanLogs") await cleanLogs.mutateAsync(id);
+            if (action === "initializeSystem") await initializeSystem.mutateAsync(id);
 
             Swal.fire({
                 title: "Éxito",
@@ -113,6 +119,14 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                                     onClick={() => onManageUsers(b.id)}
                                 >
                                     Modificar lista de usuarios permitidos
+                                </Button>
+                                <Button
+                                    variant="warning"
+                                    size="sm"
+                                    className="me-2"
+                                    onClick={() => handleAction("reboot", b.id)}
+                                >
+                                    Reiniciar dispositivo
                                 </Button>
 
                                 {role === "SA" && (

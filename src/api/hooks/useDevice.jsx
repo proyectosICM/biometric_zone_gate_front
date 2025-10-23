@@ -138,6 +138,36 @@ export const useClearAllUsers = () => {
   });
 };
 
+// Reiniciar dispositivo
+export const useRebootDevice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.reboot,
+    onSuccess: (_, id) => {
+      console.log(`🔄 Dispositivo ${id} reiniciado correctamente.`);
+      queryClient.invalidateQueries(["device", id]);
+    },
+    onError: (error) => {
+      console.error("❌ Error al reiniciar el dispositivo:", error);
+    },
+  });
+};
+
+// Inicializar sistema (borrar usuarios y logs)
+export const useInitializeSystem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceService.initializeSystem,
+    onSuccess: (_, id) => {
+      console.log(`🧹 Sistema del dispositivo ${id} inicializado correctamente.`);
+      queryClient.invalidateQueries(["device", id]);
+    },
+    onError: (error) => {
+      console.error("❌ Error al inicializar el sistema del dispositivo:", error);
+    },
+  });
+};
+
 // Limpiar administradores
 export const useCleanAdmins = () => {
   const queryClient = useQueryClient();
