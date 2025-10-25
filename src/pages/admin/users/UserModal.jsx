@@ -9,13 +9,13 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         email: "",
         username: "",
         password: "",
+        role: "USER",
         adminLevel: 0,
         enabled: true,
         isWebUser: false,
         companyId: role === "SA" ? "" : 1,
     });
 
-    console.log(user);
     const [credentials, setCredentials] = useState([
         { type: "PASSWORD", backupNum: 10, record: "" },
     ]);
@@ -29,7 +29,8 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 email: user.email || "",
                 username: user.username || "",
                 password: "",
-                adminLevel: user.adminLevel ?? 0,
+                role: user.role || "USER",
+                adminLevel: user.adminLevel != null ? user.adminLevel : mapRoleToAdminLevel(user.role || "USER"),
                 enabled: user.enabled ?? true,
                 isWebUser: !!user.username, // si tiene username => es web user
                 companyId: user.company?.id || (role === "SA" ? "" : 1),
@@ -65,7 +66,6 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        // Si se desactiva el usuario web, limpiar sus campos
         if (name === "isWebUser" && !checked) {
             setFormData((prev) => ({
                 ...prev,
@@ -93,7 +93,9 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     ? 10
                     : value === "CARD"
                         ? 11
-                        : 12;
+                        : value === "PHOTO"
+                            ? 50  // 👈 aquí facial
+                            : 0;  // default fingerprint
         }
 
         setCredentials(updated);
@@ -115,9 +117,9 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         if (!formData.name) return;
         if (role === "SA" && !formData.companyId) return;
 
+
         const finalForm = { ...formData };
 
-        // limpiar si no es usuario web
         if (!formData.isWebUser) {
             finalForm.email = null;
             finalForm.username = null;
@@ -130,8 +132,11 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
             credentials,
         };
 
+        console.log(finalData)
         onSave(finalData);
     };
+
+    const mapRoleToAdminLevel = (role) => (role === "USER" ? 0 : 1);
 
     return (
         <Modal show={show} onHide={onHide} centered backdrop="static" animation={false}>
@@ -236,16 +241,23 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     )}
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Nivel de Administrador</Form.Label>
+                        <Form.Label>Rol</Form.Label>
                         <Form.Select
-                            name="adminLevel"
+                            name="role"
                             className="bg-secondary text-light border-0"
-                            value={formData.adminLevel}
-                            onChange={handleChange}
+                            value={formData.role}
+                            onChange={(e) => {
+                                const newRole = e.target.value;
+                                setFormData(prev => ({
+                                    ...prev,
+                                    role: newRole,
+                                    adminLevel: mapRoleToAdminLevel(newRole), 
+                                }));
+                            }}
                         >
-                            <option value={0}>Usuario Normal</option>
-                            <option value={1}>Administrador</option>
-                            <option value={2}>Super Usuario</option>
+                            <option value="USER">Usuario Normal</option>
+                            <option value="ADMIN">Administrador</option>
+                            {role === "SA" && <option value="SA">Super Usuario</option>}
                         </Form.Select>
                     </Form.Group>
 
@@ -264,55 +276,78 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                     <h5 className="text-info mb-3">Credenciales</h5>
 
                     {credentials.map((cred, index) => (
-                        <div
-                            key={index}
-                            className="bg-secondary rounded p-3 mb-3 border border-dark"
-                        >
+                        <div key={index} className="bg-secondary rounded p-3 mb-3 border border-dark">
+
                             <Form.Group className="mb-2">
                                 <Form.Label>Tipo</Form.Label>
                                 <Form.Select
                                     className="bg-dark text-light border-0"
                                     value={cred.type}
-                                    onChange={(e) =>
-                                        handleCredentialChange(index, "type", e.target.value)
-                                    }
+                                    onChange={(e) => handleCredentialChange(index, "type", e.target.value)}
+                                    disabled={cred.type === "FINGERPRINT" || cred.type === "PHOTO"}
                                 >
                                     <option value="PASSWORD">Contraseña</option>
                                     <option value="CARD">Tarjeta RFID</option>
                                     <option value="FINGERPRINT">Huella</option>
+                                    <option value="PHOTO">Foto / Facial</option>
                                 </Form.Select>
                             </Form.Group>
 
-                            <Form.Group className="mb-2">
-                                <Form.Label>BackupNum</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    className="bg-dark text-light border-0"
-                                    value={cred.backupNum}
-                                    onChange={(e) =>
-                                        handleCredentialChange(index, "backupNum", Number(e.target.value))
-                                    }
-                                />
-                            </Form.Group>
+                            {/* FOTO: si no hay record, permitir subir */}
+                            {cred.type === "PHOTO" && !cred.record && (
+                                <>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: "none" }}
+                                        id={`photoUpload-${index}`}
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                handleCredentialChange(index, "record", reader.result.split(",")[1]);
+                                                // split(",")[1] quita "data:image/jpeg;base64,"
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }}
+                                    />
 
-                            <Form.Group className="mb-2">
-                                <Form.Label>Dato / Record</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    className="bg-dark text-light border-0"
-                                    placeholder={
-                                        cred.type === "PASSWORD"
-                                            ? "Ej. 1234"
-                                            : cred.type === "CARD"
-                                                ? "Número de tarjeta"
-                                                : "Template de huella"
-                                    }
-                                    value={cred.record}
-                                    onChange={(e) =>
-                                        handleCredentialChange(index, "record", e.target.value)
-                                    }
-                                />
-                            </Form.Group>
+                                    <Button
+                                        variant="outline-light"
+                                        size="sm"
+                                        className="mb-2"
+                                        onClick={() => document.getElementById(`photoUpload-${index}`).click()}
+                                    >
+                                        📷 Subir Foto / Facial
+                                    </Button>
+                                </>
+                            )}
+
+                            {/* RECORD solo visible si no es foto o fingerprint */}
+                            {(cred.type !== "FINGERPRINT" && cred.type !== "PHOTO") && (
+                                <Form.Group className="mb-2">
+                                    <Form.Label>Dato / Record</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        className="bg-dark text-light border-0"
+                                        placeholder={
+                                            cred.type === "PASSWORD"
+                                                ? "Ej. 1234"
+                                                : cred.type === "CARD"
+                                                    ? "Número de tarjeta"
+                                                    : ""
+                                        }
+                                        value={cred.record}
+                                        onChange={(e) => handleCredentialChange(index, "record", e.target.value)}
+                                    />
+                                </Form.Group>
+                            )}
+
+                            {/* mostrar que ya está cargada */}
+                            {cred.type === "PHOTO" && cred.record && (
+                                <div className="text-success mb-2">✅ Foto almacenada</div>
+                            )}
 
                             <Button
                                 variant="outline-danger"

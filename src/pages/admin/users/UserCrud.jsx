@@ -20,9 +20,8 @@ import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 export function UserCrud() {
     const navigate = useNavigate();
 
-    // En producción, estos valores vendrán del localStorage o JWT
     const company = localStorage.getItem("bzg_companyId");
-    const role = localStorage.getItem("bzg_role");; // "SA" = Super Admin´
+    const role = localStorage.getItem("bzg_role");;
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
@@ -59,6 +58,9 @@ export function UserCrud() {
 
     const handleSave = async (userData) => {
         try {
+
+            console.log(userData);
+            
             if (!userData.name) {
                 Swal.fire({
                     title: "Error",

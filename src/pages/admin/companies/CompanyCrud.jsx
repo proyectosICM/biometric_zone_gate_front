@@ -14,12 +14,12 @@ import {
 } from "../../../api/hooks/useCompany";
 
 export function CompanyCrud() {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
-    const [sortBy, setSortBy] = useState("name");
-    const [direction, setDirection] = useState("asc");
+    const [sortBy, setSortBy] = useState("createdAt");
+    const [direction, setDirection] = useState("desc");
 
     const { data, isLoading, isError } = useGetAllCompaniesPaginated(
         page,

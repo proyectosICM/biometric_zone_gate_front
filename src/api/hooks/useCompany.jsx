@@ -13,6 +13,8 @@ export const useGetAllCompaniesPaginated = (page, size, sortBy, direction) => {
         queryKey: ["companies", page, size, sortBy, direction],
         queryFn: () => companyService.getAllCompaniesPaginated(page, size, sortBy, direction),
         keepPreviousData: true,
+        refetchOnWindowFocus: true,
+        refetchInterval: 5000,
     });
 }; 
 

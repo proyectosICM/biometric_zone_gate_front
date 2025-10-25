@@ -9,18 +9,18 @@ export function Administration() {
   const role = localStorage.getItem("bzg_role");
 
   const cards = [
-    {
-      title: "Usuarios",
-      icon: <FaUsers size={40} />,
-      description: "Gestiona los usuarios del sistema",
-      route: "/users",
-    },
-    {
+        {
       title: "Empresas",
       icon: <FaBuilding size={40} />,
       description: "Administra las empresas registradas",
       route: "/companies",
       requiresSA: true,
+    },
+    {
+      title: "Usuarios",
+      icon: <FaUsers size={40} />,
+      description: "Gestiona los usuarios del sistema",
+      route: "/users",
     },
     {
       title: "Biométricos",

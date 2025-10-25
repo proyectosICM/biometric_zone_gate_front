@@ -27,8 +27,8 @@ export const routes = [
   { path: "/user-access/:userId", component: <UserAccessDetails /> },
 
   { path: "/administracion", component: <Administration /> },
-  { path: "/users", component: <UserCrud /> },
   { path: "/companies", component: <CompanyCrud /> },
+  { path: "/users", component: <UserCrud /> },
   { path: "/biometrics", component: <BiometricCrud /> },
   { path: "/event-types", component: <EventTypeCrud /> },
 

@@ -41,6 +41,8 @@ export function AllowedUsersManager() {
   const deleteAccessMutation = useDeleteDeviceUserAccess();
   const cleanAllMutation = useCleanDeviceUsersBySn();
 
+  console.log(allowedUsers);
+
   // ---------- ESTADO ----------
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -60,11 +62,23 @@ export function AllowedUsersManager() {
   const handleDelete = (accessId) => {
     const selectedAccess = allowedUsers.find((u) => u.id === accessId);
 
+    // ✅ VALIDACIÓN: si no tiene enrollId real → bloquear
+    if (!selectedAccess.enrollId || selectedAccess.enrollId === 0) {
+      Swal.fire({
+        title: "Aún no sincronizado",
+        text: "Este usuario todavía no ha sido sincronizado con el dispositivo. No se puede eliminar hasta que el dispositivo asigne un EnrollId.",
+        icon: "info",
+        background: "#212529",
+        color: "#fff",
+        confirmButtonColor: "#198754",
+      });
+      return;
+    }
+
     Swal.fire({
       title: "¿Eliminar permiso?",
-      text: `Se revocará el acceso de ${
-        selectedAccess.userName || "usuario desconocido"
-      } a este dispositivo.`,
+      text: `Se revocará el acceso de ${selectedAccess.userName || "usuario desconocido"
+        } a este dispositivo.`,
       icon: "warning",
       background: "#212529",
       color: "#fff",
@@ -256,8 +270,7 @@ export function AllowedUsersManager() {
                   <tr>
                     <th>#</th>
                     <th>Nombre</th>
-                    <th>Rol</th>
-                    <th>Modo de autenticación</th>
+                    <th>EnrollId en dispositivo</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -266,8 +279,7 @@ export function AllowedUsersManager() {
                     <tr key={user.id}>
                       <td>{user.id}</td>
                       <td>{user.userName}</td>
-                      <td>{user.groupNumber}</td>
-                      <td>{user.authMode}</td>
+                      <td>{user.enrollId}</td>
                       <td>
                         <Button
                           variant="secondary"
