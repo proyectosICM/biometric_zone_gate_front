@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
+import { Button, Col, Container, Row, Spinner, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { UserTable } from "./UserTable";
 import { UserModal } from "./UserModal";
@@ -12,7 +12,7 @@ import {
     useGetUsersByCompanyIdPaged,
     useCreateUser,
     useUpdateUser,
-    useDeleteUser, 
+    useDeleteUser,
 } from "../../../api/hooks/useUser";
 
 import { useGetAllCompanies } from "../../../api/hooks/useCompany";
@@ -20,23 +20,42 @@ import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 export function UserCrud() {
     const navigate = useNavigate();
 
-    const company = localStorage.getItem("bzg_companyId");
-    const role = localStorage.getItem("bzg_role");;
+    const loggedCompany = localStorage.getItem("bzg_companyId");
+    const role = localStorage.getItem("bzg_role");
 
+    const [selectedCompany, setSelectedCompany] = useState("ALL"); // 👈 filtro SA
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [sortBy, setSortBy] = useState("createdAt");
     const [direction, setDirection] = useState("desc");
 
-    // Users
+    // Queries usuarios
     const allUsersQuery = useGetAllUsersPaginated(page, size, sortBy, direction);
-    const companyUsersQuery = useGetUsersByCompanyIdPaged(company, page, size, sortBy, direction);
+    const companyUsersQuery = useGetUsersByCompanyIdPaged(
+        selectedCompany === "ALL" ? loggedCompany : selectedCompany,
+        page,
+        size,
+        sortBy,
+        direction
+    );
 
-    const data = role === "SA" ? allUsersQuery.data : companyUsersQuery.data;
-    const isLoading = role === "SA" ? allUsersQuery.isLoading : companyUsersQuery.isLoading;
-    const isError = role === "SA" ? allUsersQuery.isError : companyUsersQuery.isError;
+    // Determina qué data usar según SA o no y según selección
+    const data =
+        role === "SA"
+            ? (selectedCompany === "ALL" ? allUsersQuery.data : companyUsersQuery.data)
+            : companyUsersQuery.data;
 
-    // Companies (solo necesario para SA)
+    const isLoading =
+        role === "SA"
+            ? (selectedCompany === "ALL" ? allUsersQuery.isLoading : companyUsersQuery.isLoading)
+            : companyUsersQuery.isLoading;
+
+    const isError =
+        role === "SA"
+            ? (selectedCompany === "ALL" ? allUsersQuery.isError : companyUsersQuery.isError)
+            : companyUsersQuery.isError;
+
+    // Empresas (solo SA)
     const companiesQuery = useGetAllCompanies();
     const companies = companiesQuery.data || [];
 
@@ -58,9 +77,6 @@ export function UserCrud() {
 
     const handleSave = async (userData) => {
         try {
-
-            console.log(userData);
-            
             if (!userData.name) {
                 Swal.fire({
                     title: "Error",
@@ -75,11 +91,12 @@ export function UserCrud() {
 
             const payload = {
                 ...userData,
-                companyId: role === "SA" ? userData.companyId : company,
+                companyId:
+                    role === "SA"
+                        ? userData.companyId
+                        : loggedCompany,
                 credentials: userData.credentials || [],
             };
-
-            console.log(payload);
 
             if (userData.id) {
                 await updateUser.mutateAsync({ id: userData.id, data: payload });
@@ -182,8 +199,7 @@ export function UserCrud() {
                             className="w-100"
                             onClick={() => navigate(-1)}
                         >
-                            <FaArrowLeft className="me-2" />
-                            Atrás
+                            <FaArrowLeft className="me-2" /> Atrás
                         </Button>
                     </Col>
                 </Row>
@@ -192,6 +208,26 @@ export function UserCrud() {
 
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h3 className="text-light">Usuarios Registrados</h3>
+
+                    {role === "SA" && (
+                        <Form.Select
+                            className="bg-secondary text-light border-0 me-2"
+                            style={{ width: "220px" }}
+                            value={selectedCompany}
+                            onChange={(e) => {
+                                setSelectedCompany(e.target.value);
+                                setPage(0);
+                            }}
+                        >
+                            <option value="ALL">Todas las empresas</option>
+                            {companies.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    )}
+
                     <Button
                         variant="outline-success"
                         onClick={() => {
@@ -202,7 +238,7 @@ export function UserCrud() {
                                 password: "",
                                 adminLevel: 0,
                                 enabled: true,
-                                companyId: role === "SA" ? "" : company,
+                                companyId: role === "SA" ? "" : loggedCompany,
                             });
                             setShowModal(true);
                         }}

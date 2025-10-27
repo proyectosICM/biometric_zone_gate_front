@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
+import { Button, Col, Container, Row, Spinner, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { BiometricTable } from "./BiometricTable";
 import { BiometricModal } from "./BiometricModal";
@@ -21,25 +21,45 @@ import { useGetAllCompanies } from "../../../api/hooks/useCompany";
 export function BiometricCrud() {
   const navigate = useNavigate();
 
-  const company = localStorage.getItem("bzg_companyId");
-  const role = localStorage.getItem("bzg_role");;
+  const loggedCompany = localStorage.getItem("bzg_companyId");
+  const role = localStorage.getItem("bzg_role");
 
+  const [selectedCompany, setSelectedCompany] = useState("ALL");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
-  const [sortBy, setSortBy] = useState("name");
-  const [direction, setDirection] = useState("asc");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [direction, setDirection] = useState("desc");
 
   const openDoor = useOpenDoor();
 
-  // Queries
+  // Queries de dispositivos
   const allDevicesQuery = useGetAllDevicesPaginated(page, size, sortBy, direction);
-  const companyDevicesQuery = useListByCompanyPaginated(company, page, size, sortBy, direction);
+  const companyDevicesQuery = useListByCompanyPaginated(
+    selectedCompany === "ALL" ? loggedCompany : selectedCompany,
+    page,
+    size,
+    sortBy,
+    direction
+  );
+
+  const data =
+    role === "SA"
+      ? (selectedCompany === "ALL" ? allDevicesQuery.data : companyDevicesQuery.data)
+      : companyDevicesQuery.data;
+
+  const isLoading =
+    role === "SA"
+      ? (selectedCompany === "ALL" ? allDevicesQuery.isLoading : companyDevicesQuery.isLoading)
+      : companyDevicesQuery.isLoading;
+
+  const isError =
+    role === "SA"
+      ? (selectedCompany === "ALL" ? allDevicesQuery.isError : companyDevicesQuery.isError)
+      : companyDevicesQuery.isError;
+
+  // Companies
   const companiesQuery = useGetAllCompanies();
   const companies = companiesQuery.data || [];
-
-  const data = role === "SA" ? allDevicesQuery.data : companyDevicesQuery.data;
-  const isLoading = role === "SA" ? allDevicesQuery.isLoading : companyDevicesQuery.isLoading;
-  const isError = role === "SA" ? allDevicesQuery.isError : companyDevicesQuery.isError;
 
   // Mutations
   const createDevice = useCreateDevice();
@@ -99,7 +119,7 @@ export function BiometricCrud() {
       const payload = {
         sn: deviceData.sn,
         name: deviceData.name,
-        company: { id: deviceData.companyId },
+        company: { id: role === "SA" ? deviceData.companyId : loggedCompany },
       };
 
       if (deviceData.id) {
@@ -137,7 +157,6 @@ export function BiometricCrud() {
       });
     }
   };
-
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -178,7 +197,7 @@ export function BiometricCrud() {
 
   const handleManageUsers = (id) => {
     navigate(`/usuarios-permitidos/${id}`);
-  }
+  };
 
   if (isLoading) {
     return (
@@ -199,6 +218,7 @@ export function BiometricCrud() {
   return (
     <div className="g-background">
       <CustomNavbar />
+
       <Container className="mt-4">
         <Row className="mb-3">
           <Col>
@@ -213,6 +233,26 @@ export function BiometricCrud() {
 
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h3 className="text-light">Dispositivos Registrados</h3>
+
+          {role === "SA" && (
+            <Form.Select
+              className="bg-secondary text-light border-0 me-2"
+              style={{ width: "220px" }}
+              value={selectedCompany}
+              onChange={(e) => {
+                setSelectedCompany(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="ALL">Todas las empresas</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Form.Select>
+          )}
+
           <Button
             variant="outline-success"
             onClick={() => {
@@ -226,7 +266,7 @@ export function BiometricCrud() {
                 antiPassback: 0,
                 sleepEnabled: true,
                 verificationMode: 0,
-                companyId: role === "SA" ? "" : company,
+                companyId: role === "SA" ? "" : loggedCompany,
               });
               setShowModal(true);
             }}
@@ -247,7 +287,12 @@ export function BiometricCrud() {
         />
 
         <div className="d-flex justify-content-center mt-3">
-          <Button variant="outline-light" className="me-2" disabled={page === 0} onClick={() => handlePageChange(page - 1)}>
+          <Button
+            variant="outline-light"
+            className="me-2"
+            disabled={page === 0}
+            onClick={() => handlePageChange(page - 1)}
+          >
             ← Anterior
           </Button>
           <span className="text-light align-self-center">

@@ -79,6 +79,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                         <th>Nombre</th>
                         <th>Empresa</th>
                         <th>Acciones</th>
+                        <th>Comandos</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -105,30 +106,17 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                                 >
                                     Eliminar
                                 </Button>
-                                <Button
-                                    variant="success"
-                                    size="sm"
-                                    className="me-2"
-                                    onClick={() => onOpenDoor(b.id)}
-                                >
-                                    Abrir puerta
-                                </Button>
+
                                 <Button
                                     variant="info"
                                     size="sm"
                                     className="me-2"
                                     onClick={() => onManageUsers(b.id)}
                                 >
-                                    Modificar lista de usuarios permitidos
+                                    Usuarios permitidos
                                 </Button>
-                                <Button
-                                    variant="warning"
-                                    size="sm"
-                                    className="me-2"
-                                    onClick={() => handleAction("reboot", b.id)}
-                                >
-                                    Reiniciar dispositivo
-                                </Button>
+
+
 
                                 {role === "SA" && (
                                     <Button
@@ -142,6 +130,26 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                                         Funciones avanzadas
                                     </Button>
                                 )}
+                            </td>
+
+                            <td>
+                                <Button
+                                    variant="success"
+                                    size="sm"
+                                    className="me-2"
+                                    onClick={() => onOpenDoor(b.id)}
+                                >
+                                    Abrir puerta
+                                </Button>
+
+                                <Button
+                                    variant="warning"
+                                    size="sm"
+                                    className="me-2"
+                                    onClick={() => handleAction("reboot", b.id)}
+                                >
+                                    Reiniciar dispositivo
+                                </Button>
                             </td>
                         </tr>
                     ))}
@@ -169,7 +177,8 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                             </Button>
                         </Col>
 
-                        <Col xs={12} className="mb-3">
+                    {/* Innecesario, el dispositivo siempre actualiza la hora en cada registro */}
+                    {/*    <Col xs={12} className="mb-3">
                             <Button
                                 variant="outline-light"
                                 className="w-100 p-2"
@@ -177,7 +186,7 @@ export function BiometricTable({ biometrics, onEdit, onDelete, onManageUsers, on
                             >
                                 Asignar hora personalizada
                             </Button>
-                        </Col>
+                        </Col>*/}
 
                         <Col xs={12} className="mb-3">
                             <Button

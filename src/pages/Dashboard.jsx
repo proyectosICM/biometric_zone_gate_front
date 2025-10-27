@@ -14,12 +14,12 @@ import { ZoneCard } from "../components/ZoneCard/ZoneCard";
 import "./Dashboard.css";
 import { Container, Spinner, Button } from "react-bootstrap";
 import * as deviceService from "../api/services/deviceService";
-import { useGetLatestLogsByDeviceToday } from "../api/hooks/useAccessLogs";
+import { useGetLatestLogsByDeviceToday, useCountLogsByDeviceAndDay } from "../api/hooks/useAccessLogs";
 import { getEntryExitTimeString } from "../utils/formatDate";
 import { FaChartLine, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export function Dashboard() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const company = localStorage.getItem("bzg_companyId");
 
   const [zones, setZones] = useState([]);
@@ -171,8 +171,13 @@ export function Dashboard() {
 }
 
 /* ---- Subcomponente para cada tarjeta ---- */
-function ZoneCardWrapper({ zone, onUpdateCount }) {
+function ZoneCardWrapper({ zone, onUpdateCount }) { 
+  const todayLocal = new Date().toLocaleDateString("en-CA");
+
   const { data: latestLogs, isLoading } = useGetLatestLogsByDeviceToday(zone.id);
+
+  const { data: countToday, isLoading: isLoadingCount } =
+    useCountLogsByDeviceAndDay(zone.id, todayLocal);
 
   const accessList =
     latestLogs?.map((log) => ({
@@ -182,16 +187,17 @@ function ZoneCardWrapper({ zone, onUpdateCount }) {
     })) || [];
 
   useEffect(() => {
-    if (!isLoading) {
-      onUpdateCount(zone.id, accessList.length);
+    if (!isLoadingCount && countToday !== undefined) {
+      onUpdateCount(zone.id, countToday);
     }
-  }, [isLoading, accessList.length]);
+  }, [isLoadingCount, countToday]);
 
   return (
     <ZoneCard
       key={zone.id}
       zoneId={zone.id}
       zoneName={zone.name}
+      countToday={countToday}
       recentAccesses={accessList.length}
       accessList={accessList}
       device={zone}

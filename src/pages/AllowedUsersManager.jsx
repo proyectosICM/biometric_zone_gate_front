@@ -271,6 +271,8 @@ export function AllowedUsersManager() {
                     <th>#</th>
                     <th>Nombre</th>
                     <th>EnrollId en dispositivo</th>
+                    <th>Sincronizado en dispositivo</th>
+                    <th>Pendiente a eliminacion </th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -278,8 +280,10 @@ export function AllowedUsersManager() {
                   {allowedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>{user.id}</td>
-                      <td>{user.userName}</td>
+                      <td>{user.name}</td>
                       <td>{user.enrollId}</td>
+                      <td>{user.synced ? "SI" : "NO"}</td>
+                      <td>{user.pendingDelete ? "SI" : "NO"}</td>
                       <td>
                         <Button
                           variant="secondary"

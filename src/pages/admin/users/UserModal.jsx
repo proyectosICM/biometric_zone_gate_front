@@ -1,6 +1,45 @@
 import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
 
+/**
+ * Redimensiona una imagen a 512x512, la convierte a JPG (quality=0.85)
+ * y devuelve:
+ *  - base64: string SIN el prefijo "data:image/jpeg;base64,"
+ *  - preview: dataURL para previsualizar en la UI
+ */
+async function resizeToJpegBase64(file, maxSize = 512, quality = 0.85) {
+    const dataURL = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = dataURL;
+    });
+
+    // Hacemos un recorte centrado a cuadrado y luego lo escalamos a 512x512
+    const canvas = document.createElement("canvas");
+    canvas.width = maxSize;
+    canvas.height = maxSize;
+    const ctx = canvas.getContext("2d");
+
+    const { width, height } = img;
+    const side = Math.min(width, height);
+    const sx = (width - side) / 2;
+    const sy = (height - side) / 2;
+
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+
+    const outDataURL = canvas.toDataURL("image/jpeg", quality);
+    const base64 = outDataURL.split(",")[1]; // sin prefijo
+    return { base64, preview: outDataURL };
+}
+
 export function UserModal({ show, onHide, user, onSave, role, companies }) {
     const [formData, setFormData] = useState({
         id: null,
@@ -16,9 +55,13 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         companyId: role === "SA" ? "" : 1,
     });
 
+    // credentials: además de type/backupNum/record, guardamos "preview" (solo UI, no se envía)
     const [credentials, setCredentials] = useState([
-        { type: "PASSWORD", backupNum: 10, record: "" },
+        { type: "PASSWORD", backupNum: 10, record: "", preview: null },
     ]);
+
+    // Mapea role → adminLevel (USER:0, ADMIN/SA:1)
+    const mapRoleToAdminLevel = (r) => (r === "USER" ? 0 : 1);
 
     useEffect(() => {
         if (user) {
@@ -30,21 +73,28 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 username: user.username || "",
                 password: "",
                 role: user.role || "USER",
-                adminLevel: user.adminLevel != null ? user.adminLevel : mapRoleToAdminLevel(user.role || "USER"),
+                adminLevel:
+                    user.adminLevel != null
+                        ? user.adminLevel
+                        : mapRoleToAdminLevel(user.role || "USER"),
                 enabled: user.enabled ?? true,
-                isWebUser: !!user.username, // si tiene username => es web user
-                companyId: user.company?.id || (role === "SA" ? "" : 1),
+                isWebUser: !!user.username,
+                companyId: user.companyId || (role === "SA" ? "" : 1),
             });
 
             setCredentials(
                 user.credentials && user.credentials.length
-                    ? user.credentials.map(c => ({
+                    ? user.credentials.map((c) => ({
                         id: c.id || null,
                         type: c.type,
                         backupNum: c.backupNum,
-                        record: c.record
+                        record: c.record,
+                        preview:
+                            c.type === "PHOTO" && c.record
+                                ? `data:image/jpeg;base64,${c.record}`
+                                : null,
                     }))
-                    : [{ type: "PASSWORD", backupNum: 10, record: "" }]
+                    : [{ type: "PASSWORD", backupNum: 10, record: "", preview: null }]
             );
         } else {
             setFormData({
@@ -54,17 +104,27 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                 email: "",
                 username: "",
                 password: "",
+                role: "USER",
                 adminLevel: 0,
                 enabled: true,
                 isWebUser: false,
                 companyId: role === "SA" ? "" : 1,
             });
-            setCredentials([{ type: "PASSWORD", backupNum: 10, record: "" }]);
+            setCredentials([
+                { type: "PASSWORD", backupNum: 10, record: "", preview: null },
+            ]);
         }
     }, [user, show, role]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+
+        if (name === "enrollId") {
+            return setFormData(prev => ({
+                ...prev,
+                enrollId: value === "" ? "" : Number(value)
+            }));
+        }
 
         if (name === "isWebUser" && !checked) {
             setFormData((prev) => ({
@@ -88,14 +148,19 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         updated[index][field] = value;
 
         if (field === "type") {
+            // Seteamos backupNum automático
             updated[index].backupNum =
-                value === "PASSWORD"
-                    ? 10
-                    : value === "CARD"
-                        ? 11
-                        : value === "PHOTO"
-                            ? 50  // 👈 aquí facial
-                            : 0;  // default fingerprint
+                value === "PASSWORD" ? 10 : value === "CARD" ? 11 : value === "PHOTO" ? 50 : 0;
+
+            // Si cambia a PHOTO o FINGERPRINT, no debe tener record editable manual
+            if (value === "FINGERPRINT") {
+                updated[index].record = ""; // se captura en dispositivo
+                updated[index].preview = null;
+            }
+            if (value === "PHOTO") {
+                // sin foto todavía: record vacío y sin preview
+                if (!updated[index].record) updated[index].preview = null;
+            }
         }
 
         setCredentials(updated);
@@ -104,7 +169,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
     const addCredential = () => {
         setCredentials([
             ...credentials,
-            { type: "PASSWORD", backupNum: 10, record: "" },
+            { type: "PASSWORD", backupNum: 10, record: "", preview: null },
         ]);
     };
 
@@ -112,13 +177,30 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
         setCredentials(credentials.filter((_, i) => i !== index));
     };
 
+    const handlePhotoSelect = async (file, index) => {
+        if (!file) return;
+
+        try {
+            const { base64, preview } = await resizeToJpegBase64(file, 512, 0.85);
+            const updated = [...credentials];
+            updated[index].record = base64; // solo base64 puro
+            updated[index].preview = preview; // dataURL para UI
+            setCredentials(updated);
+        } catch (err) {
+            console.error("Error al procesar la imagen:", err);
+            // opcional: mostrar toast/alert
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.name) return;
         if (role === "SA" && !formData.companyId) return;
 
-
         const finalForm = { ...formData };
+
+        // role->adminLevel consistente
+        finalForm.adminLevel = mapRoleToAdminLevel(finalForm.role);
 
         if (!formData.isWebUser) {
             finalForm.email = null;
@@ -126,28 +208,44 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
             finalForm.password = null;
         }
 
+        // Sanitizar credenciales (no enviar "preview")
+        const cleanCreds = credentials.map(({ preview, ...rest }) => rest);
+
         const finalData = {
             ...finalForm,
             companyId: Number(finalForm.companyId),
-            credentials,
+            credentials: cleanCreds,
         };
 
-        console.log(finalData)
         onSave(finalData);
     };
-
-    const mapRoleToAdminLevel = (role) => (role === "USER" ? 0 : 1);
 
     return (
         <Modal show={show} onHide={onHide} centered backdrop="static" animation={false}>
             <Modal.Header closeButton className="bg-dark text-light border-secondary">
-                <Modal.Title>
-                    {formData.id ? "Editar Usuario" : "Nuevo Usuario"}
-                </Modal.Title>
+                <Modal.Title>{formData.id ? "Editar Usuario" : "Nuevo Usuario"}</Modal.Title>
             </Modal.Header>
+
+
 
             <Form onSubmit={handleSubmit}>
                 <Modal.Body className="bg-dark text-light">
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Enroll ID (DNI)</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="enrollId"
+                            className="bg-secondary text-light border-0"
+                            value={formData.enrollId}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Form.Text className="text-info">
+                            Este ID debe ser único. Idealmente el DNI del usuario.
+                        </Form.Text>
+                    </Form.Group>
+
                     <Form.Group className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
@@ -198,6 +296,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                 />
                             </Form.Group>
 
+                            {/* CASO CREACION */}
                             {!formData.id && (
                                 <Form.Group className="mb-3">
                                     <Form.Label>Contraseña Web</Form.Label>
@@ -209,6 +308,22 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                         value={formData.password}
                                         onChange={handleChange}
                                         required={formData.isWebUser}
+                                    />
+                                </Form.Group>
+                            )}
+
+                            {/* CASO EDICION */}
+                            {formData.id && (
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Contraseña Web (opcional)</Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        name="password"
+                                        className="bg-secondary text-light border-0"
+                                        placeholder="Dejar vacío si no desea cambiar"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                    
                                     />
                                 </Form.Group>
                             )}
@@ -248,10 +363,10 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                             value={formData.role}
                             onChange={(e) => {
                                 const newRole = e.target.value;
-                                setFormData(prev => ({
+                                setFormData((prev) => ({
                                     ...prev,
                                     role: newRole,
-                                    adminLevel: mapRoleToAdminLevel(newRole), 
+                                    adminLevel: mapRoleToAdminLevel(newRole),
                                 }));
                             }}
                         >
@@ -277,7 +392,6 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
 
                     {credentials.map((cred, index) => (
                         <div key={index} className="bg-secondary rounded p-3 mb-3 border border-dark">
-
                             <Form.Group className="mb-2">
                                 <Form.Label>Tipo</Form.Label>
                                 <Form.Select
@@ -293,39 +407,58 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                 </Form.Select>
                             </Form.Group>
 
-                            {/* FOTO: si no hay record, permitir subir */}
-                            {cred.type === "PHOTO" && !cred.record && (
+                            {/* FOTO: subir & preview (si no hay record aún, botón; si ya hay, mostrar preview) */}
+                            {cred.type === "PHOTO" && (
                                 <>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ display: "none" }}
-                                        id={`photoUpload-${index}`}
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if (!file) return;
-                                            const reader = new FileReader();
-                                            reader.onloadend = () => {
-                                                handleCredentialChange(index, "record", reader.result.split(",")[1]);
-                                                // split(",")[1] quita "data:image/jpeg;base64,"
-                                            };
-                                            reader.readAsDataURL(file);
-                                        }}
-                                    />
-
-                                    <Button
-                                        variant="outline-light"
-                                        size="sm"
-                                        className="mb-2"
-                                        onClick={() => document.getElementById(`photoUpload-${index}`).click()}
-                                    >
-                                        📷 Subir Foto / Facial
-                                    </Button>
+                                    {!cred.record ? (
+                                        <>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: "none" }}
+                                                id={`photoUpload-${index}`}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    await handlePhotoSelect(file, index);
+                                                }}
+                                            />
+                                            <Button
+                                                variant="outline-light"
+                                                size="sm"
+                                                className="mb-2"
+                                                onClick={() => document.getElementById(`photoUpload-${index}`).click()}
+                                            >
+                                                📷 Subir Foto (512×512)
+                                            </Button>
+                                            {/* Opción B: sin miniatura cuando no hay foto */}
+                                            <div className="text-muted">❌ No hay foto</div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {cred.preview && (
+                                                <img
+                                                    src={cred.preview}
+                                                    alt="Foto facial"
+                                                    style={{
+                                                        width: 64,
+                                                        height: 64,
+                                                        objectFit: "cover",
+                                                        borderRadius: 8,
+                                                        border: "1px solid rgba(255,255,255,0.2)",
+                                                        display: "block",
+                                                        marginBottom: 8,
+                                                    }}
+                                                />
+                                            )}
+                                            <div className="text-success mb-2">✅ Foto almacenada</div>
+                                        </>
+                                    )}
                                 </>
                             )}
 
-                            {/* RECORD solo visible si no es foto o fingerprint */}
-                            {(cred.type !== "FINGERPRINT" && cred.type !== "PHOTO") && (
+                            {/* RECORD visible solo si no es foto ni huella */}
+                            {cred.type !== "FINGERPRINT" && cred.type !== "PHOTO" && (
                                 <Form.Group className="mb-2">
                                     <Form.Label>Dato / Record</Form.Label>
                                     <Form.Control
@@ -344,16 +477,7 @@ export function UserModal({ show, onHide, user, onSave, role, companies }) {
                                 </Form.Group>
                             )}
 
-                            {/* mostrar que ya está cargada */}
-                            {cred.type === "PHOTO" && cred.record && (
-                                <div className="text-success mb-2">✅ Foto almacenada</div>
-                            )}
-
-                            <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={() => removeCredential(index)}
-                            >
+                            <Button variant="outline-danger" size="sm" onClick={() => removeCredential(index)}>
                                 Eliminar
                             </Button>
                         </div>
