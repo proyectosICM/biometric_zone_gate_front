@@ -14,6 +14,8 @@ import {
 import { CustomNavbar } from "../components/CustomNavbar";
 import { FaArrowLeft, FaPlus, FaTrashAlt, FaBroom } from "react-icons/fa";
 import Swal from "sweetalert2";
+import Select from "react-select";
+
 
 import { useGetUsersByCompanyId } from "../api/hooks/useUser";
 import { useListByCompany } from "../api/hooks/useDevice";
@@ -46,16 +48,6 @@ export function AllowedUsersManager() {
   // ---------- ESTADO ----------
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [weekZone, setWeekZone] = useState(1);
-  const [groupNumber, setGroupNumber] = useState(1);
-  const [startTime, setStartTime] = useState(
-    new Date().toISOString().slice(0, 16)
-  );
-  const [endTime, setEndTime] = useState(
-    new Date(new Date().setMonth(new Date().getMonth() + 1))
-      .toISOString()
-      .slice(0, 16)
-  );
   const [enabled, setEnabled] = useState(true);
 
   // ---------- FUNCIONES ----------
@@ -170,10 +162,6 @@ export function AllowedUsersManager() {
     const payload = {
       userId: Number(selectedUserId),
       deviceId: Number(id),
-      weekZone: Number(weekZone),
-      groupNumber: Number(groupNumber),
-      startTime: new Date(startTime).toISOString(),
-      endTime: new Date(endTime).toISOString(),
       enabled,
     };
 
@@ -189,18 +177,11 @@ export function AllowedUsersManager() {
         });
         setShowModal(false);
         setSelectedUserId("");
-        setWeekZone(1);
-        setGroupNumber(1);
-        setStartTime(new Date().toISOString().slice(0, 16));
-        setEndTime(
-          new Date(new Date().setMonth(new Date().getMonth() + 1))
-            .toISOString()
-            .slice(0, 16)
-        );
         setEnabled(true);
       },
     });
   };
+
 
   if (loadingUsers || loadingDevices || loadingAllowed) {
     return (
@@ -319,6 +300,7 @@ export function AllowedUsersManager() {
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Seleccionar usuario</Form.Label>
+              {    /*
               <Form.Select
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
@@ -326,46 +308,55 @@ export function AllowedUsersManager() {
                 <option value="">-- Selecciona un usuario --</option>
                 {allUsers.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
+                    ({user.enrollId}) {user.name} 
                   </option>
                 ))}
               </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Week Zone</Form.Label>
-              <Form.Control
-                type="number"
-                min={1}
-                max={7}
-                value={weekZone}
-                onChange={(e) => setWeekZone(e.target.value)}
+              */}
+
+              <Select
+                options={allUsers.map(u => ({
+                  value: u.id,
+                  label: `(${u.enrollId || "?"}) ${u.name}`
+                }))}
+                onChange={(option) => setSelectedUserId(option ? option.value : "")}
+                placeholder="Buscar usuario..."
+                isClearable
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1e1e1e",
+                    borderColor: "#444",
+                    color: "#fff",
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "#1e1e1e",
+                    color: "#fff",
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused ? "#333" : "#1e1e1e",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "#bbb",
+                  }),
+                }}
               />
+
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Group Number</Form.Label>
-              <Form.Control
-                type="number"
-                min={1}
-                value={groupNumber}
-                onChange={(e) => setGroupNumber(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Start Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>End Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
