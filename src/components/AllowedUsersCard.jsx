@@ -11,15 +11,11 @@ export function AllowedUsersCard({ usersPage, onEdit }) {
         <Table striped bordered hover variant="dark">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Nombre</th> 
-              <th>Username</th>
-              <th>Habilitado</th>
-              <th>Semana/Zona</th>
-              <th>Grupo</th>
-              <th>Inicio</th>
-              <th>Fin</th>
-              <th>Dispositivo</th>
+              <th>Id</th>
+              <th>Nombre</th>
+              <th>EnrollId en dispositivo</th>
+              <th>Sincronizado en dispositivo</th>
+              <th>Pendiente a eliminacion </th>
             </tr>
           </thead>
           <tbody>
@@ -33,15 +29,11 @@ export function AllowedUsersCard({ usersPage, onEdit }) {
 
               return (
                 <tr key={item.id}>
-                  <td>{index + 1}</td>
+                  <td>{item.id}</td>
                   <td>{item.name || "—"}</td>
-                  <td>{item.userName || "—"}</td>
-                  <td>{item.enabled ? "Sí" : "No"}</td>
-                  <td>{item.weekZone || "—"}</td>
-                  <td>{item.groupNumber || "—"}</td>
-                  <td>{startDate}</td>
-                  <td>{endDate}</td>
-                  <td>{item.deviceName || "—"}</td>
+                  <td>{item.enrollId || "—"}</td>
+                  <td>{item.synced ? "SI" : "NO"}</td>
+                  <td>{item.pendingDelete ? "SI" : "NO"}</td>
                 </tr>
               );
             })}
