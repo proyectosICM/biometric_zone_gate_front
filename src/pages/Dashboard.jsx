@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart,
@@ -28,26 +28,29 @@ export function Dashboard() {
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    let mounted = true;
     const fetchDevices = async () => {
       try {
         const allDevices = await deviceService.listByCompany(company);
-        const initialized = allDevices.map((z) => ({ ...z, recentCount: 0 }));
+        if (!mounted) return;
+        const initialized = (allDevices || []).map((z) => ({ ...z, recentCount: 0 }));
         setZones(initialized);
       } catch (error) {
         console.error("Error fetching devices:", error);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
-
     fetchDevices();
+    return () => { mounted = false; };
   }, [company]);
 
-  const handleUpdateCount = (zoneId, count) => {
+  // ✅ Estabiliza identidad del callback
+  const handleUpdateCount = useCallback((zoneId, count) => {
     setZones((prev) =>
       prev.map((z) => (z.id === zoneId ? { ...z, recentCount: count } : z))
     );
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -60,12 +63,34 @@ export function Dashboard() {
   const threshold = 3;
 
   const scrollLeft = () => {
-    scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
   };
 
   const scrollRight = () => {
-    scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
   };
+
+  // --- helpers SOLO para render ---
+  const isMobile =
+    typeof window !== "undefined" ? window.innerWidth <= 576 : false;
+
+  // etiquetas cortas en móvil
+  const chartData = zones.map((z) => {
+    const name = z?.name || "Dispositivo";
+    const short = isMobile && name.length > 12 ? name.slice(0, 12).trim() + "…" : name;
+    return { name, short, ingresos: z.recentCount || 0 };
+  });
+
+  // ancho virtual para permitir scroll del gráfico en móvil
+  const virtualWidthPx = Math.max(chartData.length * 120, 360);
+  const chartHeight = isMobile ? 320 : 450;
+  const chartMargin = isMobile
+    ? { top: 16, right: 24, bottom: 24, left: 40 }
+    : { top: 40, right: 100, bottom: 80, left: 100 };
 
   return (
     <div className="g-background">
@@ -108,63 +133,69 @@ export function Dashboard() {
           />
           Resumen de ingresos por dispositivo
         </h2>
-        <ResponsiveContainer width="100%" height={450}>
-          <LineChart
-            data={zones.map((z) => ({
-              name: z.name,
-              ingresos: z.recentCount || 0,
-            }))}
-            margin={{ top: 40, right: 100, bottom: 80, left: 100 }}
+
+        {/* En móvil: contenedor con scroll horizontal y ancho virtual */}
+        <div className={isMobile ? "chart-scroll-wrapper" : ""}>
+          <div
+            className={isMobile ? "chart-scroll-inner" : ""}
+            style={isMobile ? { width: virtualWidthPx, height: chartHeight } : {}}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              angle={-30}
-              textAnchor="end"
-              interval={0}
-              height={60}
-              tick={{ fill: "#fff" }}
-            />
-            <YAxis tick={{ fill: "#fff" }} />
-            <Tooltip
-              contentStyle={{ backgroundColor: "#222", border: "none" }}
-              labelStyle={{ color: "#fff" }}
-              itemStyle={{ color: "#fff" }}
-            />
-            <Line
-              type="monotone"
-              dataKey="ingresos"
-              stroke="#82ca9d"
-              strokeWidth={2}
-              dot={({ cx, cy, payload }) => {
-                const isHigh = payload.ingresos > threshold;
-                return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={5}
-                    fill={isHigh ? "#e74c3c" : "#3498db"}
-                    stroke="#fff"
-                    strokeWidth={1}
-                  />
-                );
-              }}
-              activeDot={({ cx, cy, payload }) => {
-                const isHigh = payload.ingresos > threshold;
-                return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={7}
-                    fill={isHigh ? "#e74c3c" : "#3498db"}
-                    stroke="#fff"
-                    strokeWidth={2}
-                  />
-                );
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <LineChart data={chartData} margin={chartMargin}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey={isMobile ? "short" : "name"}
+                  angle={isMobile ? 0 : -30}
+                  textAnchor={isMobile ? "middle" : "end"}
+                  interval={0}
+                  height={isMobile ? 30 : 60}
+                  tick={{ fill: "#fff", fontSize: isMobile ? 11 : 12 }}
+                />
+                <YAxis tick={{ fill: "#fff" }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#222", border: "none" }}
+                  labelStyle={{ color: "#fff" }}
+                  itemStyle={{ color: "#fff" }}
+                  labelFormatter={(label, payload) =>
+                    (payload && payload[0] && payload[0].payload?.name) || label
+                  }
+                />
+                <Line
+                  type="monotone"
+                  dataKey="ingresos"
+                  stroke="#82ca9d"
+                  strokeWidth={2}
+                  dot={({ cx, cy, payload }) => {
+                    const isHigh = payload.ingresos > threshold;
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={5}
+                        fill={isHigh ? "#e74c3c" : "#3498db"}
+                        stroke="#fff"
+                        strokeWidth={1}
+                      />
+                    );
+                  }}
+                  activeDot={({ cx, cy, payload }) => {
+                    const isHigh = payload.ingresos > threshold;
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={7}
+                        fill={isHigh ? "#e74c3c" : "#3498db"}
+                        stroke="#fff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </Container>
     </div>
   );
@@ -175,7 +206,6 @@ function ZoneCardWrapper({ zone, onUpdateCount }) {
   const todayLocal = new Date().toLocaleDateString("en-CA");
 
   const { data: latestLogs, isLoading } = useGetLatestLogsByDeviceToday(zone.id);
-
   const { data: countToday, isLoading: isLoadingCount } =
     useCountLogsByDeviceAndDay(zone.id, todayLocal);
 
@@ -186,11 +216,18 @@ function ZoneCardWrapper({ zone, onUpdateCount }) {
       time: getEntryExitTimeString(log.entryTime, log.exitTime),
     })) || [];
 
+  // ✅ Evita bucle: solo dispara si el valor cambió realmente
+  const lastCountRef = useRef();
   useEffect(() => {
-    if (!isLoadingCount && countToday !== undefined) {
-      onUpdateCount(zone.id, countToday);
+    if (!isLoadingCount && typeof countToday !== "undefined") {
+      if (lastCountRef.current !== countToday) {
+        onUpdateCount(zone.id, countToday);
+        lastCountRef.current = countToday;
+      }
     }
-  }, [isLoadingCount, countToday]);
+    // NO incluir onUpdateCount en deps para evitar loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingCount, countToday, zone.id]);
 
   return (
     <ZoneCard

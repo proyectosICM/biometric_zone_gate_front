@@ -2,15 +2,15 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin: 16px 0; /* margen superior e inferior */
-  padding: 0 40px; /* padding horizontal para separar de los bordes */
+  margin: 16px 0;
+  padding: 0 40px;
 }
 
 .container-items-horizontal {
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding: 8px 16px; /* padding interno */
+  padding: 8px 16px;
   scroll-behavior: smooth;
 }
 
@@ -35,10 +35,15 @@
   align-items: center;
 }
 
-.scroll-btn.left {
-  left: 0; 
+.scroll-btn.left { left: 0; }
+.scroll-btn.right { right: 0; }
+
+/* Scroll horizontal para el gráfico en móvil */
+.chart-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.scroll-btn.right {
-  right: 0; 
+.chart-scroll-inner {
+  min-width: 360px; /* base mínima para no aplastar el chart */
 }
