@@ -36,9 +36,9 @@
 }
 
 .scroll-btn.left {
-  left: 0; /* ahora dentro del padding */
+  left: 0; 
 }
 
 .scroll-btn.right {
-  right: 0; /* ahora dentro del padding */
+  right: 0; 
 }

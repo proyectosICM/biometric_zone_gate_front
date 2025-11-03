@@ -147,3 +147,18 @@ export const useGetLatestLogsByDeviceToday = (deviceId) => {
         staleTime: 0,
     });
 };
+
+// --- DESCARGAS XLSX ---
+export const useDownloadAccessLogsByDeviceXlsx = () => {
+  return useMutation({
+    mutationFn: ({ deviceId, from, to }) =>
+      accessLogsService.downloadAccessLogsByDeviceXlsx({ deviceId, from, to }),
+  });
+};
+
+export const useDownloadAccessLogsByCompanyXlsx = () => {
+  return useMutation({
+    mutationFn: ({ companyId, from, to }) =>
+      accessLogsService.downloadAccessLogsByCompanyXlsx({ companyId, from, to }),
+  });
+};

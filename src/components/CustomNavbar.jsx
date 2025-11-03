@@ -41,6 +41,9 @@ export function CustomNavbar() {
           <Nav.Link onClick={() => navigate("/user-access")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaClipboardList style={{ marginRight: "5px" }} /> Acesos de usuarios
           </Nav.Link>
+          <Nav.Link onClick={() => navigate("/alerts")} style={{ borderBottom: "none", textDecoration: "none" }}>
+            <FaClipboardList style={{ marginRight: "5px" }} /> Alertas
+          </Nav.Link>
           {/* <Nav.Link onClick={() => navigation("/records-panel")}>Panel Registros</Nav.Link> */}
           <Nav.Link onClick={() => navigate("/administracion")} style={{ borderBottom: "none", textDecoration: "none" }}>
             <FaUserShield style={{ marginRight: "5px" }} /> Administración

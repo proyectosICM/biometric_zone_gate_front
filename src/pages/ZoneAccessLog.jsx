@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { CustomNavbar } from "../components/CustomNavbar";
 import { Container, Table, Button, Stack, Row, Col, Modal, Form } from "react-bootstrap";
-import { FaFingerprint, FaArrowLeft } from "react-icons/fa";
+import { FaFingerprint, FaArrowLeft, FaDownload } from "react-icons/fa";
 import {
   FaIdBadge,
   FaUser,
@@ -22,23 +22,23 @@ import {
 
 import Swal from "sweetalert2";
 import {
+  useDownloadAccessLogsByDeviceXlsx,
   useGetLogsByDevicePaginated,
   useUpdateObservation,
 } from "../api/hooks/useAccessLogs.jsx";
 import { formatDateTime, formatSecondsToHHMMSS, getDateAndDayFromTimestamp, getDateFromTimestamp } from "../utils/formatDate.jsx";
+import { downloadBlob } from "../utils/downloadBlob.jsx";
 
 export function ZoneAccessLog() {
   const { deviceId } = useParams();
   const navigate = useNavigate();
   const companyId = localStorage.getItem("bzg_companyId");
   const role = localStorage.getItem("bzg_role");;
-  
-  // Estados del modal
+
+  // ----------------- Observación -----------------
   const [showModal, setShowModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState(null);
   const [newObservation, setNewObservation] = useState("");
-
-  // Mutación para actualizar observación
   const { mutate: updateObservation, isLoading: isUpdating } = useUpdateObservation();
 
   const handleOpenModal = (logId, currentObservation = "") => {
@@ -49,7 +49,7 @@ export function ZoneAccessLog() {
 
   const handleCloseModal = () => setShowModal(false);
 
-  // Paginación
+  // ----------------- Datos / Paginación -----------------
   const [page, setPage] = useState(0);
   const size = 4;
   const direction = "desc";
@@ -112,7 +112,105 @@ export function ZoneAccessLog() {
     );
   };
 
-  // Estado de carga
+  // ----------------- Exportar XLSX por Dispositivo -----------------
+  const { mutateAsync: downloadByDevice, isLoading: isDownloading } =
+    useDownloadAccessLogsByDeviceXlsx();
+
+  const [showExport, setShowExport] = useState(false);
+  const [rangeType, setRangeType] = useState("today"); // today | week | month | custom
+  const [fromIso, setFromIso] = useState("");
+  const [toIso, setToIso] = useState("");
+
+  const openExportModal = () => {
+    // preset por defecto: hoy
+    const { from, to } = getTodayRange();
+    setRangeType("today");
+    setFromIso(from);
+    setToIso(to);
+    setShowExport(true);
+  };
+  const closeExportModal = () => setShowExport(false);
+
+  // Helpers de rango (en hora local)
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function toLocalInput(dt) {
+    // Convierte Date -> "YYYY-MM-DDTHH:mm"
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  }
+  function getTodayRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    return { from: toLocalInput(start), to: toLocalInput(end) };
+  }
+  function getWeekRange() {
+    // Últimos 7 días (incluido hoy)
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const start = new Date(now);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    return { from: toLocalInput(start), to: toLocalInput(end) };
+  }
+  function getMonthRange() {
+    // Desde el primer día del mes actual hasta ahora (fin de día)
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    return { from: toLocalInput(start), to: toLocalInput(end) };
+  }
+
+  const handlePreset = (type) => {
+    setRangeType(type);
+    if (type === "today") {
+      const { from, to } = getTodayRange();
+      setFromIso(from);
+      setToIso(to);
+    } else if (type === "week") {
+      const { from, to } = getWeekRange();
+      setFromIso(from);
+      setToIso(to);
+    } else if (type === "month") {
+      const { from, to } = getMonthRange();
+      setFromIso(from);
+      setToIso(to);
+    } else if (type === "custom") {
+      // Limpia para obligar selección manual
+      setFromIso("");
+      setToIso("");
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    if (!fromIso || !toIso) {
+      Swal.fire({
+        icon: "warning",
+        title: "Rango incompleto",
+        text: "Selecciona fecha y hora de inicio y fin.",
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+      return;
+    }
+    try {
+      const blob = await downloadByDevice({ deviceId, from: fromIso, to: toIso });
+      downloadBlob(
+        blob,
+        `access-logs_device_${deviceId}_${fromIso.slice(0, 10)}_a_${toIso.slice(0, 10)}.xlsx`
+      );
+      setShowExport(false);
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al descargar",
+        text: "No se pudo generar el Excel.",
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+    }
+  };
+
+  // ----------------- Loading / Error -----------------
   if (isLoading) {
     return (
       <div className="g-background min-vh-100 d-flex flex-column justify-content-center align-items-center">
@@ -249,6 +347,17 @@ export function ZoneAccessLog() {
             Siguiente →
           </Button>
         </div>
+        {/* Botón de descarga centrado */}
+        <div className="d-flex justify-content-center mt-4">
+          <Button
+            variant="outline-light"
+            onClick={openExportModal}
+            disabled={isDownloading}
+          >
+            <FaDownload className="me-2" />
+            Descargar registros en Excel
+          </Button>
+        </div>
       </Container>
 
       {/* Modal de observación */}
@@ -287,6 +396,88 @@ export function ZoneAccessLog() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+
+      {/* Modal de exportación */}
+      <Modal show={showExport} onHide={closeExportModal} centered>
+        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+          <Modal.Title>Descargar registros en Excel</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="bg-dark text-light">
+          <Row className="g-2">
+            <Col xs={12} md={6}>
+              <Button
+                variant={rangeType === "today" ? "light" : "outline-light"}
+                className="w-100"
+                onClick={() => handlePreset("today")}
+              >
+                Registros de hoy
+              </Button>
+            </Col>
+            <Col xs={12} md={6}>
+              <Button
+                variant={rangeType === "week" ? "light" : "outline-light"}
+                className="w-100"
+                onClick={() => handlePreset("week")}
+              >
+                Registros de la semana
+              </Button>
+            </Col>
+            <Col xs={12} md={6}>
+              <Button
+                variant={rangeType === "month" ? "light" : "outline-light"}
+                className="w-100 mt-2 mt-md-0"
+                onClick={() => handlePreset("month")}
+              >
+                Registros del mes
+              </Button>
+            </Col>
+            <Col xs={12} md={6}>
+              <Button
+                variant={rangeType === "custom" ? "light" : "outline-light"}
+                className="w-100 mt-2 mt-md-0"
+                onClick={() => handlePreset("custom")}
+              >
+                Personalizado
+              </Button>
+            </Col>
+          </Row>
+
+          {/* Inputs solo visibles si es personalizado, o visibles siempre con preset precargado (tu eliges).
+              Aquí los mostramos SIEMPRE para que puedas ajustar el rango tras elegir el preset. */}
+          <Row className="mt-3">
+            <Col md={6}>
+              <Form.Label>Desde</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                className="bg-dark text-light border-secondary"
+                value={fromIso}
+                onChange={(e) => setFromIso(e.target.value)}
+              />
+            </Col>
+            <Col md={6} className="mt-3 mt-md-0">
+              <Form.Label>Hasta</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                className="bg-dark text-light border-secondary"
+                value={toIso}
+                onChange={(e) => setToIso(e.target.value)}
+              />
+            </Col>
+          </Row>
+        </Modal.Body>
+        <Modal.Footer className="bg-dark border-secondary">
+          <Button variant="secondary" onClick={closeExportModal}>
+            Cancelar
+          </Button>
+          <Button
+            variant="outline-light"
+            onClick={handleDownloadExcel}
+            disabled={isDownloading}
+          >
+            {isDownloading ? "Generando..." : "Descargar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div >
   );
 }

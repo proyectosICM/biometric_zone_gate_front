@@ -212,3 +212,22 @@ export const getLatestLogsByDeviceToday = async (deviceId) => {
         throw error;
     }
 };
+
+// --- DESCARGA EXCEL POR DISPOSITIVO ---
+export const downloadAccessLogsByDeviceXlsx = async ({ deviceId, from, to }) => {
+    // 'from' y 'to' en ISO: "YYYY-MM-DDTHH:mm" o "YYYY-MM-DDTHH:mm:ss"
+    const { data } = await api.get(
+        `${endpoint}/xlsx/device/${deviceId}`,
+        { params: { from, to }, responseType: "blob" }
+    );
+    return data; // Blob
+};
+
+// --- DESCARGA EXCEL POR EMPRESA ---
+export const downloadAccessLogsByCompanyXlsx = async ({ companyId, from, to }) => {
+    const { data } = await api.get(
+        `${endpoint}/xlsx/company/${companyId}`,
+        { params: { from, to }, responseType: "blob" }
+    );
+    return data; // Blob
+};

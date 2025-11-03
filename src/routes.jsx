@@ -4,6 +4,7 @@ import { CompanyCrud } from "./pages/admin/companies/CompanyCrud";
 import { EventTypeCrud } from "./pages/admin/eventType/EventTypeCrud";
 import { UserCrud } from "./pages/admin/users/UserCrud";
 import { Administration } from "./pages/Administration";
+import {AlertsByCompanyTable} from "./pages/alerts/AlertsByCompanyTable";
 import { AllowedUsersManager } from "./pages/AllowedUsersManager";
 import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
@@ -21,6 +22,7 @@ export const routes = [
   { path: "/detalle-ingreso/:id", component: <AccessLogDetail /> },
   { path: "/usuarios-permitidos/:id", component: <AllowedUsersManager /> },
 
+  { path: "/alerts", component: <AlertsByCompanyTable /> },
   { path: "/observations", component: <Observations /> },
 
   { path: "/user-access", component: <UserAccessList /> },
