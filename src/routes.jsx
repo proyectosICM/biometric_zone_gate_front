@@ -4,7 +4,7 @@ import { CompanyCrud } from "./pages/admin/companies/CompanyCrud";
 import { EventTypeCrud } from "./pages/admin/eventType/EventTypeCrud";
 import { UserCrud } from "./pages/admin/users/UserCrud";
 import { Administration } from "./pages/Administration";
-import {AlertsByCompanyTable} from "./pages/alerts/AlertsByCompanyTable";
+import { AlertsByCompanyTable } from "./pages/alerts/AlertsByCompanyTable";
 import { AllowedUsersManager } from "./pages/AllowedUsersManager";
 import { Login } from "./pages/auth/Login";
 import { Dashboard } from "./pages/Dashboard";
@@ -17,6 +17,8 @@ import { ZoneAccessLog } from "./pages/ZoneAccessLog";
 export const routes = [
   { path: "/login", component: <Login /> },
   { path: "/", component: <Dashboard /> },
+  { path: "/user-access", component: <UserAccessList /> },
+
   { path: "/zona-ingresos/:deviceId", component: <ZoneAccessLog /> },
   { path: "/config-device/:deviceId", component: <DeviceConfiguration /> },
   { path: "/detalle-ingreso/:id", component: <AccessLogDetail /> },
@@ -25,7 +27,7 @@ export const routes = [
   { path: "/alerts", component: <AlertsByCompanyTable /> },
   { path: "/observations", component: <Observations /> },
 
-  { path: "/user-access", component: <UserAccessList /> },
+
   { path: "/user-access/:userId", component: <UserAccessDetails /> },
 
   { path: "/administracion", component: <Administration /> },

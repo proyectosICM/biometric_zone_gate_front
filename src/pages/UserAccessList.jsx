@@ -40,7 +40,7 @@ export function UserAccessList() {
   const navigate = useNavigate();
 
   // Paginación de usuarios 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); 
   const [size] = useState(10);
 
   // Paginación de logs
@@ -135,7 +135,7 @@ export function UserAccessList() {
                 {role === "SA" && (
                   <th><FaBuilding className="me-1 text-warning" /> Empresa</th>
                 )}
-                <th><FaHardHat className="me-1 text-success" /> Rol</th>
+                {/*<th><FaHardHat className="me-1 text-success" /> Rol</th>*/}
                 <th><FaTools className="me-1" />Acciones</th>
               </tr>
             </thead>
@@ -147,9 +147,9 @@ export function UserAccessList() {
                     <td>{user.name}</td>
                     <td>{user.username || "Sin usuario web"}</td>
                     {role === "SA" && (
-                      <td>{user.company?.name || "—"}</td>
+                      <td>{user.companyName || "—"}</td>
                     )}
-                    <td>{user.role}</td>
+                    {/*<td>{user.role}</td>*/}
                     <td>
                       <Button
                         variant="outline-light"
