@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { CustomNavbar } from "../components/CustomNavbar";
-import { Container, Table, Button, Stack, Row, Col, Modal, Form } from "react-bootstrap";
+import { Container, Table, Button, Stack, Row, Col, Modal, Form, Image, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { FaCamera } from "react-icons/fa";
 import { FaFingerprint, FaArrowLeft, FaDownload } from "react-icons/fa";
 import {
   FaIdBadge,
@@ -41,6 +42,9 @@ export function ZoneAccessLog() {
   const [newObservation, setNewObservation] = useState("");
   const { mutate: updateObservation, isLoading: isUpdating } = useUpdateObservation();
 
+  const [photoModalB64, setPhotoModalB64] = useState(null);
+  const [photoModalTitle, setPhotoModalTitle] = useState("Foto EPP");
+
   const handleOpenModal = (logId, currentObservation = "") => {
     setSelectedLogId(logId);
     setNewObservation(currentObservation);
@@ -69,6 +73,32 @@ export function ZoneAccessLog() {
   const handleBackClick = () => navigate(-1);
   const handleConfigClick = () => navigate(`/config-device/${deviceId}`);
   const handleViewDetail = (logId) => navigate(`/detalle-ingreso/${logId}`);
+
+  // Detecta mime por cabecera base64 (best-effort)
+  const guessMime = (b64 = "") => {
+    if (b64.startsWith("/9j")) return "image/jpeg";      // JPEG
+    if (b64.startsWith("iVBOR")) return "image/png";     // PNG
+    if (b64.startsWith("R0lGOD")) return "image/gif";    // GIF
+    return "image/jpeg";
+  };
+  const toDataUrl = (b64) => `data:${guessMime(b64)};base64,${b64}`;
+
+  const openPhoto = (b64, title = "Foto EPP") => {
+    setPhotoModalB64(b64);
+    setPhotoModalTitle(title);
+  };
+  const closePhoto = () => {
+    setPhotoModalB64(null);
+    setPhotoModalTitle("Foto EPP");
+  };
+
+  const downloadBase64Image = (b64, fileName = "foto_epp.jpg") => {
+    if (!b64) return;
+    const a = document.createElement("a");
+    a.href = toDataUrl(b64);
+    a.download = fileName;
+    a.click();
+  };
 
   // Guardar observación (envía al backend)
   const handleSaveObservation = () => {
@@ -276,6 +306,7 @@ export function ZoneAccessLog() {
                 <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
                 <th><FaHourglassHalf className="me-1" /> Duración</th>
                 <th><FaHardHat className="me-1 text-warning" /> EPP</th>
+                <th><FaCamera className="me-1" /> Foto EPP</th>
                 <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
                 <th><FaStickyNote className="me-1" /> Observación</th>
                 <th><FaTools className="me-1" /> Acciones</th>
@@ -305,6 +336,36 @@ export function ZoneAccessLog() {
                     <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>
                     <td className={log.correctEpp ? "text-success" : "text-danger"}>
                       {log.correctEpp ? "Sí" : "No"}
+                    </td>
+                    +<td>
+                      {log.entryEppPhotoB64 ? (
+                        <OverlayTrigger
+                          placement="right"
+                          overlay={
+                            <Tooltip id={`tt-epp-${log.id}`}>
+                              <Image
+                                src={toDataUrl(log.entryEppPhotoB64)}
+                                style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 10 }}
+                              />
+                            </Tooltip>
+                          }
+                        >
+                          <Image
+                            src={toDataUrl(log.entryEppPhotoB64)}
+                            roundedCircle
+                            style={{ width: 40, height: 40, objectFit: "cover", cursor: "pointer" }}
+                            onClick={() =>
+                              openPhoto(
+                                log.entryEppPhotoB64,
+                                `Foto EPP — ${log.user?.name || "Usuario"} (ID ${log.id})`
+                              )
+                            }
+                            alt="Foto EPP"
+                          />
+                        </OverlayTrigger>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className={log.success ? "text-success" : "text-danger"}>
                       {log.success ? "✔" : "✖"}
@@ -476,6 +537,36 @@ export function ZoneAccessLog() {
           >
             {isDownloading ? "Generando..." : "Descargar"}
           </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ===== Modal Foto EPP ===== */}
+      <Modal show={!!photoModalB64} onHide={closePhoto} centered size="lg" backdrop="static">
+        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+          <Modal.Title>{photoModalTitle}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="bg-dark text-center">
+          {photoModalB64 && (
+            <Image
+              src={toDataUrl(photoModalB64)}
+              style={{ maxHeight: "70vh", maxWidth: "100%", borderRadius: 10 }}
+              alt="Foto EPP"
+            />
+          )}
+        </Modal.Body>
+        <Modal.Footer className="bg-dark border-secondary">
+          <Button
+            variant="outline-light"
+            onClick={() =>
+              downloadBase64Image(
+                photoModalB64,
+                `${photoModalTitle.replaceAll(" ", "_").toLowerCase()}.jpg`
+              )
+            }
+          >
+            Descargar
+          </Button>
+          <Button variant="secondary" onClick={closePhoto}>Cerrar</Button>
         </Modal.Footer>
       </Modal>
     </div >

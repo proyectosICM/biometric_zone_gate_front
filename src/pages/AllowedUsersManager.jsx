@@ -43,7 +43,10 @@ export function AllowedUsersManager() {
   const deleteAccessMutation = useDeleteDeviceUserAccess();
   const cleanAllMutation = useCleanDeviceUsersBySn();
 
-  console.log(allowedUsers);
+  const deviceId = Number(id);
+  const safeDevices = Array.isArray(allDevices) ? allDevices : [];
+  const deviceName =
+    (safeDevices.find(d => String(d.id) === String(id)) || {}).name || "";
 
   // ---------- ESTADO ----------
   const [showModal, setShowModal] = useState(false);
@@ -212,7 +215,7 @@ export function AllowedUsersManager() {
 
         <Card bg="dark" text="light" className="shadow-lg">
           <Card.Header className="text-center fs-4">
-            Usuarios Permitidos - Dispositivo {id}
+            Usuarios Permitidos - Dispositivo {/*id*/} {deviceName ? deviceName : id}
           </Card.Header>
           <Card.Body>
             <div className="d-flex justify-content-between mb-3">
