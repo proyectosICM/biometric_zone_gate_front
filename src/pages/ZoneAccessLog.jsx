@@ -337,7 +337,7 @@ export function ZoneAccessLog() {
                     <td className={log.correctEpp ? "text-success" : "text-danger"}>
                       {log.correctEpp ? "Sí" : "No"}
                     </td>
-                    +<td>
+                    <td>
                       {log.entryEppPhotoB64 ? (
                         <OverlayTrigger
                           placement="right"
