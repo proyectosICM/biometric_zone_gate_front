@@ -1,7 +1,19 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { CustomNavbar } from "../components/CustomNavbar";
-import { Container, Table, Button, Stack, Row, Col, Modal, Form, Image, OverlayTrigger, Tooltip } from "react-bootstrap";
+import {
+  Container,
+  Table,
+  Button,
+  Stack,
+  Row,
+  Col,
+  Modal,
+  Form,
+  Image,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap";
 import { FaCamera } from "react-icons/fa";
 import { FaFingerprint, FaArrowLeft, FaDownload } from "react-icons/fa";
 import {
@@ -19,7 +31,7 @@ import {
   FaTimesCircle,
   FaStickyNote,
   FaTools,
-} from "react-icons/fa"
+} from "react-icons/fa";
 
 import Swal from "sweetalert2";
 import {
@@ -27,20 +39,26 @@ import {
   useGetLogsByDevicePaginated,
   useUpdateObservation,
 } from "../api/hooks/useAccessLogs.jsx";
-import { formatDateTime, formatSecondsToHHMMSS, getDateAndDayFromTimestamp, getDateFromTimestamp } from "../utils/formatDate.jsx";
+import {
+  formatDateTime,
+  formatSecondsToHHMMSS,
+  getDateAndDayFromTimestamp,
+  getDateFromTimestamp,
+} from "../utils/formatDate.jsx";
 import { downloadBlob } from "../utils/downloadBlob.jsx";
 
 export function ZoneAccessLog() {
   const { deviceId } = useParams();
   const navigate = useNavigate();
   const companyId = localStorage.getItem("bzg_companyId");
-  const role = localStorage.getItem("bzg_role");;
+  const role = localStorage.getItem("bzg_role");
 
   // ----------------- Observación -----------------
   const [showModal, setShowModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState(null);
   const [newObservation, setNewObservation] = useState("");
-  const { mutate: updateObservation, isLoading: isUpdating } = useUpdateObservation();
+  const { mutate: updateObservation, isLoading: isUpdating } =
+    useUpdateObservation();
 
   const [photoModalB64, setPhotoModalB64] = useState(null);
   const [photoModalTitle, setPhotoModalTitle] = useState("Foto EPP");
@@ -58,27 +76,30 @@ export function ZoneAccessLog() {
   const size = 4;
   const direction = "desc";
 
-  // Datos del backend
-  const { data, isLoading, isError } = useGetLogsByDevicePaginated(deviceId, page, size, {
-    sortBy: "createdAt",
-    direction: "desc",
-  });
+  const { data, isLoading, isError } = useGetLogsByDevicePaginated(
+    deviceId,
+    page,
+    size,
+    {
+      sortBy: "createdAt",
+      direction: "desc",
+    }
+  );
   const accessLogs = data?.content || [];
   const totalPages = data?.totalPages || 1;
   const isLast = page >= totalPages - 1;
 
-  // Navegación
   const handlePrevious = () => page > 0 && setPage(page - 1);
   const handleNext = () => !isLast && setPage(page + 1);
   const handleBackClick = () => navigate(-1);
   const handleConfigClick = () => navigate(`/config-device/${deviceId}`);
   const handleViewDetail = (logId) => navigate(`/detalle-ingreso/${logId}`);
 
-  // Detecta mime por cabecera base64 (best-effort)
+  // Detecta mime por cabecera base64
   const guessMime = (b64 = "") => {
-    if (b64.startsWith("/9j")) return "image/jpeg";      // JPEG
-    if (b64.startsWith("iVBOR")) return "image/png";     // PNG
-    if (b64.startsWith("R0lGOD")) return "image/gif";    // GIF
+    if (b64.startsWith("/9j")) return "image/jpeg"; // JPEG
+    if (b64.startsWith("iVBOR")) return "image/png"; // PNG
+    if (b64.startsWith("R0lGOD")) return "image/gif"; // GIF
     return "image/jpeg";
   };
   const toDataUrl = (b64) => `data:${guessMime(b64)};base64,${b64}`;
@@ -100,7 +121,7 @@ export function ZoneAccessLog() {
     a.click();
   };
 
-  // Guardar observación (envía al backend)
+  // Guardar observación
   const handleSaveObservation = () => {
     if (!newObservation.trim()) {
       Swal.fire({
@@ -147,12 +168,11 @@ export function ZoneAccessLog() {
     useDownloadAccessLogsByDeviceXlsx();
 
   const [showExport, setShowExport] = useState(false);
-  const [rangeType, setRangeType] = useState("today"); // today | week | month | custom
+  const [rangeType, setRangeType] = useState("today");
   const [fromIso, setFromIso] = useState("");
   const [toIso, setToIso] = useState("");
 
   const openExportModal = () => {
-    // preset por defecto: hoy
     const { from, to } = getTodayRange();
     setRangeType("today");
     setFromIso(from);
@@ -162,31 +182,60 @@ export function ZoneAccessLog() {
   const closeExportModal = () => setShowExport(false);
 
   // Helpers de rango (en hora local)
-  function pad(n) { return String(n).padStart(2, "0"); }
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
   function toLocalInput(dt) {
-    // Convierte Date -> "YYYY-MM-DDTHH:mm"
-    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(
+      dt.getDate()
+    )}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   }
   function getTodayRange() {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const start = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0
+    );
+    const end = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
     return { from: toLocalInput(start), to: toLocalInput(end) };
   }
   function getWeekRange() {
-    // Últimos 7 días (incluido hoy)
     const now = new Date();
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const end = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
     const start = new Date(now);
     start.setDate(start.getDate() - 6);
     start.setHours(0, 0, 0, 0);
     return { from: toLocalInput(start), to: toLocalInput(end) };
   }
   function getMonthRange() {
-    // Desde el primer día del mes actual hasta ahora (fin de día)
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const end = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
     return { from: toLocalInput(start), to: toLocalInput(end) };
   }
 
@@ -205,7 +254,6 @@ export function ZoneAccessLog() {
       setFromIso(from);
       setToIso(to);
     } else if (type === "custom") {
-      // Limpia para obligar selección manual
       setFromIso("");
       setToIso("");
     }
@@ -223,10 +271,17 @@ export function ZoneAccessLog() {
       return;
     }
     try {
-      const blob = await downloadByDevice({ deviceId, from: fromIso, to: toIso });
+      const blob = await downloadByDevice({
+        deviceId,
+        from: fromIso,
+        to: toIso,
+      });
       downloadBlob(
         blob,
-        `access-logs_device_${deviceId}_${fromIso.slice(0, 10)}_a_${toIso.slice(0, 10)}.xlsx`
+        `access-logs_device_${deviceId}_${fromIso.slice(
+          0,
+          10
+        )}_a_${toIso.slice(0, 10)}.xlsx`
       );
       setShowExport(false);
     } catch (e) {
@@ -253,7 +308,6 @@ export function ZoneAccessLog() {
     );
   }
 
-  // Estado de error
   if (isError) {
     return (
       <div className="g-background min-vh-100 d-flex flex-column justify-content-center align-items-center">
@@ -264,6 +318,8 @@ export function ZoneAccessLog() {
       </div>
     );
   }
+
+  const colSpanCount = role === "SA" ? 13 : 12;
 
   return (
     <div className="g-background min-vh-100">
@@ -276,138 +332,395 @@ export function ZoneAccessLog() {
         {/* Botones superiores */}
         <Row className="mb-4">
           <Col md={6} className="mb-2">
-            <Button variant="outline-light" className="w-100" onClick={handleBackClick}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={handleBackClick}
+            >
               <FaArrowLeft className="me-2" />
               Volver atrás
             </Button>
           </Col>
           <Col md={6}>
-            <Button variant="outline-light" className="w-100" onClick={handleConfigClick}>
+            <Button
+              variant="outline-light"
+              className="w-100"
+              onClick={handleConfigClick}
+            >
               <FaFingerprint className="me-2" />
               Configurar biométrico
             </Button>
           </Col>
         </Row>
 
-        {/* Tabla de registros */}
-        <div className="table-responsive rounded overflow-hidden shadow">
-          <Table striped bordered hover variant="dark" className="align-middle mb-0">
-            <thead className="table-dark text-center">
-              <tr>
-                <th><FaIdBadge className="me-1" /> ID</th>
-                <th><FaUser className="me-1" /> Usuario</th>
-                <th><FaMicrochip className="me-1" /> Dispositivo</th>
-                {role === "SA" && (
-                  <th><FaBuilding className="me-1" /> Empresa</th>
-                )}
-                <th><FaBolt className="me-1" /> Evento</th>
-                {/* <th><FaExchangeAlt className="me-1" /> Acción</th> */}
-                <th><FaSignInAlt className="me-1 text-success" /> Entrada</th>
-                <th><FaSignOutAlt className="me-1 text-danger" /> Salida</th>
-                <th><FaHourglassHalf className="me-1" /> Duración</th>
-                <th><FaHardHat className="me-1 text-warning" /> EPP</th>
-                <th><FaCamera className="me-1" /> Foto EPP</th>
-                <th><FaCheckCircle className="me-1 text-success" /> Éxito</th>
-                <th><FaStickyNote className="me-1" /> Observación</th>
-                <th><FaTools className="me-1" /> Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accessLogs.length === 0 ? (
+        {/* ===== Vista DESKTOP/TABLET (md+) - Tabla ===== */}
+        <div className="d-none d-md-block">
+          <div className="table-responsive rounded overflow-hidden shadow">
+            <Table
+              striped
+              bordered
+              hover
+              variant="dark"
+              className="align-middle mb-0"
+            >
+              <thead className="table-dark text-center">
                 <tr>
-                  <td colSpan="13" className="text-center text-secondary py-4">
-                    No hay registros de acceso en esta zona.
-                  </td>
+                  <th>
+                    <FaIdBadge className="me-1" /> ID
+                  </th>
+                  <th>
+                    <FaUser className="me-1" /> Usuario
+                  </th>
+                  <th>
+                    <FaMicrochip className="me-1" /> Dispositivo
+                  </th>
+                  {role === "SA" && (
+                    <th>
+                      <FaBuilding className="me-1" /> Empresa
+                    </th>
+                  )}
+                  <th>
+                    <FaBolt className="me-1" /> Evento
+                  </th>
+                  <th>
+                    <FaSignInAlt className="me-1 text-success" /> Entrada
+                  </th>
+                  <th>
+                    <FaSignOutAlt className="me-1 text-danger" /> Salida
+                  </th>
+                  <th>
+                    <FaHourglassHalf className="me-1" /> Duración
+                  </th>
+                  <th>
+                    <FaHardHat className="me-1 text-warning" /> EPP
+                  </th>
+                  <th>
+                    <FaCamera className="me-1" /> Foto EPP
+                  </th>
+                  <th>
+                    <FaCheckCircle className="me-1 text-success" /> Éxito
+                  </th>
+                  <th>
+                    <FaStickyNote className="me-1" /> Observación
+                  </th>
+                  <th>
+                    <FaTools className="me-1" /> Acciones
+                  </th>
                 </tr>
-              ) : (
-                accessLogs.map((log) => (
-                  <tr key={log.id} className="text-center">
-                    <td>{log.id}</td>
-                    <td>{log.user?.name || "—"}</td>
-                    <td>{log.device?.name || "—"}</td>
-                    {role === "SA" && (
-                      <td>{log.company?.name || "—"}</td>
-                    )}
-                    {/*<td>{log.action}</td>*/}
-
-                    <td>{log.eventType?.name || "—"}</td>
-                    <td>{log.entryTime ? getDateAndDayFromTimestamp(log.entryTime) : "—"}</td>
-                    <td>{log.exitTime ? getDateAndDayFromTimestamp(log.exitTime) : "—"}</td>
-                    <td>{log.durationSeconds ? formatSecondsToHHMMSS(log.durationSeconds) : "—"}</td>
-                    <td className={log.correctEpp ? "text-success" : "text-danger"}>
-                      {log.correctEpp ? "Sí" : "No"}
-                    </td>
-                    <td>
-                      {log.entryEppPhotoB64 ? (
-                        <OverlayTrigger
-                          placement="right"
-                          overlay={
-                            <Tooltip id={`tt-epp-${log.id}`}>
-                              <Image
-                                src={toDataUrl(log.entryEppPhotoB64)}
-                                style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 10 }}
-                              />
-                            </Tooltip>
-                          }
-                        >
-                          <Image
-                            src={toDataUrl(log.entryEppPhotoB64)}
-                            roundedCircle
-                            style={{ width: 40, height: 40, objectFit: "cover", cursor: "pointer" }}
-                            onClick={() =>
-                              openPhoto(
-                                log.entryEppPhotoB64,
-                                `Foto EPP — ${log.user?.name || "Usuario"} (ID ${log.id})`
-                              )
-                            }
-                            alt="Foto EPP"
-                          />
-                        </OverlayTrigger>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className={log.success ? "text-success" : "text-danger"}>
-                      {log.success ? "✔" : "✖"}
-                    </td>
-                    <td>{log.observation || "—"}</td>
-                    <td>
-                      <Stack gap={2}>
-                        <Button
-                          variant="outline-light"
-                          size="sm"
-                          onClick={() => handleOpenModal(log.id, log.observation)}
-                        >
-                          {log.observation ? "Editar" : "Añadir"} observación
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleViewDetail(log.id)}
-                        >
-                          Ver detalle
-                        </Button>
-                      </Stack>
+              </thead>
+              <tbody>
+                {accessLogs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={colSpanCount}
+                      className="text-center text-secondary py-4"
+                    >
+                      No hay registros de acceso en esta zona.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </Table>
+                ) : (
+                  accessLogs.map((log) => (
+                    <tr key={log.id} className="text-center">
+                      <td>{log.id}</td>
+                      <td>{log.user?.name || "—"}</td>
+                      <td>{log.device?.name || "—"}</td>
+                      {role === "SA" && (
+                        <td>{log.company?.name || "—"}</td>
+                      )}
+                      <td>{log.eventType?.name || "—"}</td>
+                      <td>
+                        {log.entryTime
+                          ? getDateAndDayFromTimestamp(log.entryTime)
+                          : "—"}
+                      </td>
+                      <td>
+                        {log.exitTime
+                          ? getDateAndDayFromTimestamp(log.exitTime)
+                          : "—"}
+                      </td>
+                      <td>
+                        {log.durationSeconds
+                          ? formatSecondsToHHMMSS(log.durationSeconds)
+                          : "—"}
+                      </td>
+                      <td
+                        className={
+                          log.correctEpp ? "text-success" : "text-danger"
+                        }
+                      >
+                        {log.correctEpp ? "Sí" : "No"}
+                      </td>
+                      <td>
+                        {log.entryEppPhotoB64 ? (
+                          <OverlayTrigger
+                            placement="right"
+                            overlay={
+                              <Tooltip id={`tt-epp-${log.id}`}>
+                                <Image
+                                  src={toDataUrl(log.entryEppPhotoB64)}
+                                  style={{
+                                    width: 120,
+                                    height: 120,
+                                    objectFit: "cover",
+                                    borderRadius: 10,
+                                  }}
+                                />
+                              </Tooltip>
+                            }
+                          >
+                            <Image
+                              src={toDataUrl(log.entryEppPhotoB64)}
+                              roundedCircle
+                              style={{
+                                width: 40,
+                                height: 40,
+                                objectFit: "cover",
+                                cursor: "pointer",
+                              }}
+                              onClick={() =>
+                                openPhoto(
+                                  log.entryEppPhotoB64,
+                                  `Foto EPP — ${
+                                    log.user?.name || "Usuario"
+                                  } (ID ${log.id})`
+                                )
+                              }
+                              alt="Foto EPP"
+                            />
+                          </OverlayTrigger>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td
+                        className={
+                          log.success ? "text-success" : "text-danger"
+                        }
+                      >
+                        {log.success ? "✔" : "✖"}
+                      </td>
+                      <td>{log.observation || "—"}</td>
+                      <td>
+                        <Stack gap={2}>
+                          <Button
+                            variant="outline-light"
+                            size="sm"
+                            onClick={() =>
+                              handleOpenModal(log.id, log.observation)
+                            }
+                          >
+                            {log.observation ? "Editar" : "Añadir"} observación
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleViewDetail(log.id)}
+                          >
+                            Ver detalle
+                          </Button>
+                        </Stack>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+
+        {/* ===== Vista MOBILE (xs-sm) - Tarjetas ===== */}
+        <div className="d-md-none">
+          {accessLogs.length === 0 ? (
+            <p className="text-center text-secondary py-4">
+              No hay registros de acceso en esta zona.
+            </p>
+          ) : (
+            <Stack gap={3} className="mt-2">
+              {accessLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="bg-dark text-light rounded p-3 shadow-sm border border-secondary"
+                >
+                  {/* Cabecera: usuario + éxito */}
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <div className="fw-bold d-flex align-items-center gap-2">
+                        <FaUser />
+                        <span>{log.user?.name || "Usuario desconocido"}</span>
+                      </div>
+                      <small className="text-secondary">
+                        <FaIdBadge className="me-1" />
+                        ID: {log.id}
+                      </small>
+                    </div>
+                    <div className="text-end">
+                      <div
+                        className={
+                          log.success ? "text-success fw-bold" : "text-danger fw-bold"
+                        }
+                      >
+                        {log.success ? (
+                          <>
+                            <FaCheckCircle className="me-1" />
+                            Éxito
+                          </>
+                        ) : (
+                          <>
+                            <FaTimesCircle className="me-1" />
+                            Fallido
+                          </>
+                        )}
+                      </div>
+                      {role === "SA" && (
+                        <small className="text-secondary d-block mt-1">
+                          <FaBuilding className="me-1" />
+                          {log.company?.name || "—"}
+                        </small>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Dispositivo / Evento */}
+                  <div className="mb-2">
+                    <small className="d-block">
+                      <FaMicrochip className="me-1" />
+                      Dispositivo: {log.device?.name || "—"}
+                    </small>
+                    <small className="d-block">
+                      <FaBolt className="me-1" />
+                      Evento: {log.eventType?.name || "—"}
+                    </small>
+                  </div>
+
+                  {/* Fechas */}
+                  <div className="mb-2">
+                    <small className="d-block">
+                      <FaSignInAlt className="me-1 text-success" />
+                      Entrada:{" "}
+                      {log.entryTime
+                        ? getDateAndDayFromTimestamp(log.entryTime)
+                        : "—"}
+                    </small>
+                    <small className="d-block">
+                      <FaSignOutAlt className="me-1 text-danger" />
+                      Salida:{" "}
+                      {log.exitTime
+                        ? getDateAndDayFromTimestamp(log.exitTime)
+                        : "—"}
+                    </small>
+                    <small className="d-block">
+                      <FaHourglassHalf className="me-1" />
+                      Duración:{" "}
+                      {log.durationSeconds
+                        ? formatSecondsToHHMMSS(log.durationSeconds)
+                        : "—"}
+                    </small>
+                  </div>
+
+                  {/* EPP / Foto */}
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                      <small
+                        className={
+                          log.correctEpp
+                            ? "text-success d-block"
+                            : "text-danger d-block"
+                        }
+                      >
+                        <FaHardHat className="me-1" />
+                        EPP correcto: {log.correctEpp ? "Sí" : "No"}
+                      </small>
+                    </div>
+                    <div>
+                      {log.entryEppPhotoB64 ? (
+                        <Image
+                          src={toDataUrl(log.entryEppPhotoB64)}
+                          roundedCircle
+                          style={{
+                            width: 48,
+                            height: 48,
+                            objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            openPhoto(
+                              log.entryEppPhotoB64,
+                              `Foto EPP — ${
+                                log.user?.name || "Usuario"
+                              } (ID ${log.id})`
+                            )
+                          }
+                          alt="Foto EPP"
+                        />
+                      ) : (
+                        <small className="text-secondary">Sin foto</small>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Observación */}
+                  <div className="mb-2">
+                    <small className="d-block text-secondary">
+                      <FaStickyNote className="me-1" />
+                      Observación:
+                    </small>
+                    <small>
+                      {log.observation
+                        ? log.observation.length > 120
+                          ? log.observation.slice(0, 120) + "..."
+                          : log.observation
+                        : "—"}
+                    </small>
+                  </div>
+
+                  {/* Acciones */}
+                  <Stack direction="horizontal" gap={2}>
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      className="flex-fill"
+                      onClick={() =>
+                        handleOpenModal(log.id, log.observation)
+                      }
+                    >
+                      {log.observation ? "Editar" : "Añadir"} obs.
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-fill"
+                      onClick={() => handleViewDetail(log.id)}
+                    >
+                      Ver detalle
+                    </Button>
+                  </Stack>
+                </div>
+              ))}
+            </Stack>
+          )}
         </div>
 
         {/* Paginación */}
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <Button variant="outline-light" onClick={handlePrevious} disabled={page === 0}>
+        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-3 gap-2">
+          <Button
+            variant="outline-light"
+            onClick={handlePrevious}
+            disabled={page === 0}
+          >
             ← Anterior
           </Button>
           <span className="text-light">
             Página {page + 1} de {totalPages}
           </span>
-          <Button variant="outline-light" onClick={handleNext} disabled={isLast}>
+          <Button
+            variant="outline-light"
+            onClick={handleNext}
+            disabled={isLast}
+          >
             Siguiente →
           </Button>
         </div>
+
         {/* Botón de descarga centrado */}
         <div className="d-flex justify-content-center mt-4">
           <Button
@@ -423,7 +736,7 @@ export function ZoneAccessLog() {
 
       {/* Modal de observación */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+        <Modal.Header className="bg-dark text-light border-secondary" closeButton>
           <Modal.Title>
             {selectedLogId ? "Editar observación" : "Agregar observación"}
           </Modal.Title>
@@ -460,7 +773,7 @@ export function ZoneAccessLog() {
 
       {/* Modal de exportación */}
       <Modal show={showExport} onHide={closeExportModal} centered>
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+        <Modal.Header className="bg-dark text-light border-secondary" closeButton>
           <Modal.Title>Descargar registros en Excel</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
@@ -503,8 +816,6 @@ export function ZoneAccessLog() {
             </Col>
           </Row>
 
-          {/* Inputs solo visibles si es personalizado, o visibles siempre con preset precargado (tu eliges).
-              Aquí los mostramos SIEMPRE para que puedas ajustar el rango tras elegir el preset. */}
           <Row className="mt-3">
             <Col md={6}>
               <Form.Label>Desde</Form.Label>
@@ -540,9 +851,15 @@ export function ZoneAccessLog() {
         </Modal.Footer>
       </Modal>
 
-      {/* ===== Modal Foto EPP ===== */}
-      <Modal show={!!photoModalB64} onHide={closePhoto} centered size="lg" backdrop="static">
-        <Modal.Header closeButton className="bg-dark text-light border-secondary">
+      {/* Modal Foto EPP */}
+      <Modal
+        show={!!photoModalB64}
+        onHide={closePhoto}
+        centered
+        size="lg"
+        backdrop="static"
+      >
+        <Modal.Header className="bg-dark text-light border-secondary" closeButton>
           <Modal.Title>{photoModalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="bg-dark text-center">
@@ -566,9 +883,11 @@ export function ZoneAccessLog() {
           >
             Descargar
           </Button>
-          <Button variant="secondary" onClick={closePhoto}>Cerrar</Button>
+          <Button variant="secondary" onClick={closePhoto}>
+            Cerrar
+          </Button>
         </Modal.Footer>
       </Modal>
-    </div >
+    </div>
   );
 }
