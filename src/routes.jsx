@@ -41,3 +41,5 @@ export const routes = [
     /* path: "/usuarios-permitidos/:id", component: <AllowedUsersManager /> */
   },
 ];
+
+/* Prueba */
